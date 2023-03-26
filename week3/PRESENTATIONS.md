@@ -2,6 +2,21 @@
 
 This week's presentations focus on C# object oriented programming. You have likely worked with object-oriented programming before, so consider some of this content a review, but also a deeper dive into the concepts of OOP and polymorphism.
 
+**Wednesday**:
+
+- [Classes (and Subclasses and Abstract Classes)](#classes-and-subclasses-and-abstract-classes)
+- [Interfaces](#interfaces)
+- [Constructors and Destructors (Finalizers)](#constructors-and-destructors-finalizers)
+- [Properties](#properties)
+- [Special Topic: C# with Docker](#special-topic-c-with-docker)
+
+**Friday**:
+
+- [The new, override and virtual keywords](#the-new-override-and-virtual-keywords)
+- [Access Modifiers](#access-modifiers)
+- [Advanced Topic: Sealed Classes and Nested Classes](#advanced-topic-sealed-classes-and-nested-classes)
+- [Advanced Topic: Generics](#advanced-topic-generics)
+
 ## Classes (and Subclasses and Abstract Classes)
 
 C# follows the pattern of many other languages for classes: a class is a block of code that represents an object that can be instantiated. C# classes can contain methods, fields (variables that are public), or properties (items with getters and/or setters). 

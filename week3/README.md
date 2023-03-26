@@ -14,4 +14,4 @@ This week I have combined the resources and the presentation guides. This week's
 
 * Download this week's code repository from GitHub by using the "Download ZIP" option - see [the homework page](homework/README.md) for more details.
 * If you have been assigned a presentation topic, prepare your presentation for class on Friday - see [the Presentation Guide](https://mnsu.learn.minnstate.edu/d2l/le/content/6192136/viewContent/59970825/View) for guidance.
-* Work on the Week 3 homework and submit by **Tuesday** 11:59 PM in D2L.
+* Work on the Week 3 homework and submit by **Tuesday, April 4th, 11:59 PM** in D2L.
