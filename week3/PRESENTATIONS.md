@@ -4,29 +4,18 @@ This week's presentations focus on C# object oriented programming. You have like
 
 **Wednesday**:
 
-- [Week 3 Presentation Guides](#week-3-presentation-guides)
-  - [Classes (and Subclasses and Abstract Classes)](#classes-and-subclasses-and-abstract-classes)
-  - [Interfaces](#interfaces)
-  - [Constructors and Destructors (Finalizers)](#constructors-and-destructors-finalizers)
-  - [Properties](#properties)
-  - [Special Topic: C# with Docker](#special-topic-c-with-docker)
-  - [The new, override and virtual keywords](#the-new-override-and-virtual-keywords)
-  - [Access Modifiers](#access-modifiers)
-  - [Advanced Topic: Sealed Classes and Nested Classes](#advanced-topic-sealed-classes-and-nested-classes)
-  - [Advanced Topic: Generics](#advanced-topic-generics)
+- [Classes (and Subclasses and Abstract Classes)](#classes-and-subclasses-and-abstract-classes)
+- [Interfaces](#interfaces)
+- [Constructors and Destructors (Finalizers)](#constructors-and-destructors-finalizers)
+- [Properties](#properties)
+- [Special Topic: C# with Docker](#special-topic-c-with-docker)
 
 **Friday**:
 
-- [Week 3 Presentation Guides](#week-3-presentation-guides)
-  - [Classes (and Subclasses and Abstract Classes)](#classes-and-subclasses-and-abstract-classes)
-  - [Interfaces](#interfaces)
-  - [Constructors and Destructors (Finalizers)](#constructors-and-destructors-finalizers)
-  - [Properties](#properties)
-  - [Special Topic: C# with Docker](#special-topic-c-with-docker)
-  - [The new, override and virtual keywords](#the-new-override-and-virtual-keywords)
-  - [Access Modifiers](#access-modifiers)
-  - [Advanced Topic: Sealed Classes and Nested Classes](#advanced-topic-sealed-classes-and-nested-classes)
-  - [Advanced Topic: Generics](#advanced-topic-generics)
+- [The new, override and virtual keywords](#the-new-override-and-virtual-keywords)
+- [Access Modifiers](#access-modifiers)
+- [Advanced Topic: Sealed Classes and Nested Classes](#advanced-topic-sealed-classes-and-nested-classes)
+- [Advanced Topic: Generics](#advanced-topic-generics)
 
 ## Classes (and Subclasses and Abstract Classes)
 
