@@ -62,7 +62,7 @@ For your presentation, please cover:
 Sources to get you started (but please do seek out and use other sources as well!):
 
 * [C# Interfaces](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/interfaces) at Microsoft.
-  * The example on this page uses the `<T>` syntax for defining a type-agnostic method. We'll cover this next week in Advanced Polymorphism.
+  * The example on this page uses the `<T>` syntax for defining a type-agnostic method. This will be covered by a [different presentation](#advanced-topic-generics) on Friday, so do not worry about explaining the meaning of the `<T>` modifier in your presentation.
 * [Interfaces](https://www.w3schools.com/cs/cs_interface.php) at W3Schools.
 
 ## Constructors and Destructors (Finalizers)
@@ -157,6 +157,8 @@ For your presentation, please cover:
 * Give some examples of where properties are useful (many given in this text, and also some on the resources below, and also try to come up with one of your own!)
 * How to write a property in a class (getter and/or setter)
 * The use of the empty getter/setter (e.g. `get; private set;`)
+* If you have knowledge of properties in another language, compare and contrast how they are implemented.
+  * As an example, Python properties use the `@property` and `@(property_name).setter` syntax.
 
 Sources to get you started (but please do seek out and use other sources as well!):
 
@@ -323,13 +325,14 @@ For your presentation, please cover:
 * The four main access modifiers (all except `file`), their basic definition and the effect they have on methods and other members of a class.
 * How to use two extra combinations of the four modifiers to generate six total levels of accessibility.
 * Try to come up with a simple scenario in which you might use each modifier.
+* Consider other programming languages and compare/contrast member access.
+  * As an example, Python does not enforce private members/variables at all. By convention, Python uses `_` to designate private variables/methods and `__` to indicate system-level members, but there is no language enforcement of these designations - you can directly access a class's private members by name, even if the name begins with `_`.
 
 Sources to get you started (but please do seek out and use other sources as well!):
 
 * [Access Modifiers](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/access-modifiers) at Microsoft.
 * [Accessibility Levels](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/accessibility-levels) at Microsoft.
 * [C# Access Modifiers](https://www.w3schools.com/cs/cs_access_modifiers.php) at W3Schools.
-
 
 ## Advanced Topic: Sealed Classes and Nested Classes
 
@@ -348,7 +351,8 @@ For your presentation, please cover:
 * What is a sealed class? Give an example of why you might use one. Try to come up with at least one other example than the one in this resource guide.
 * What is a sealed method? Why might you use one?
 * What is a nested class? Does the nested class add any extra functionality, or is it just a syntactic convenience for code readability?
-
+* Java uses `final` to represent sealed classes. How do other languages implement this function if at all?
+* 
 Sources to get you started (but please do seek out and use other sources as well!):
 
 * [sealed modifier](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/sealed) (C# Reference) at Microsoft.
@@ -363,7 +367,6 @@ A very common use case of this, that we will be studying next week, is generic l
 To write a C# class that accepts a generic type, you use the `T` placeholder. You place the `T` inside of angle brackets (`<T>`) immediately following the name of the class or method. You can then use `T` as a parameter type on any method within the class, or on the method's parameters.
 
 This is an extremely simple example of a `List`-style class that implements generics. This class has nowhere near as much functionality as the actual C# `List<T>` class, but it illustrates how generics work.
-
 
     public class SimpleTenItemList<T>
     {
@@ -409,6 +412,7 @@ In your presentation, please cover:
 
 * What is a generic type: provide a concise definition of the concept.
 * See if you can think of an example beyond a simple array or list where you might want to use a generic type. 
+* Do any other languages implement anything similar to this? Do a bit of research to see if you can find any other example of a language that implements generic types in a similar fashion.
 
 Sources to get you started (but please do seek out and use other sources as well!):
 
