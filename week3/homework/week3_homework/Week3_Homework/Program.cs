@@ -84,7 +84,7 @@ namespace CS403.Week3
             // This is your product database.
             // This is functional, but not scalable - adding more products to the system
             // would be a nightmare over time!
-            string[] productCodes = { "11", "12", "21", "22", "23", "31", "32", "41" };
+            string[] productCodes = { "11", "12", "21", "22", "23", "31", "32", "41", "42" };
             string[] productNames = { "Bottled Water", "Pepsi", "Lays Potato Chips", "Nacho Cheese Doritos", "Chee-tos", "M&M's", "Reese's Peanut Butter Cups", "2% Milk Gallon", "Skim Milk Gallon" };
             decimal[] productPrices = { 1.75M, 2.00M, 2.49M, 2.29M, 2.39M, 1.49M, 1.59M, 3.19M, 3.19M };
             bool[] productIsTaxed = { false, true, true, true, true, true, true, false, false };
