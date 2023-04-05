@@ -4,13 +4,15 @@ This week's presentations focus on C# object oriented programming. You have like
 
 **Wednesday**:
 
-- [Collections][#collections]
+- [Collections](#collections)
 - [LINQ Basic Syntax](#linq-basic-syntax)
 - [LINQ Method Syntax](#linq-method-syntax)
 
 **Friday**:
 
-Friday's content will be posted by Tuesday.
+- [LINQ Comprehensions](#linq-comprehensions)
+- [LINQ Aggregate Methods](#linq-aggregate-methods)
+- [Object-Relational Mappers](#object-relational-mappers)
 
 ## Collections
 
@@ -263,3 +265,307 @@ Sources to get you started (but please do seek out and use other sources as well
 - [Query Syntax and Method Syntax](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/query-syntax-and-method-syntax-in-linq) at Microsoft.
 - [Lambda expressions](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions) at Microsoft.
 - [How to write a lambda expression](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions)
+
+## LINQ Comprehensions
+
+In Python, the *comprehension* is a useful feature that lets you compose a list or dictionary inline, by iterating over an existing list or other iterable with a transformation and an (optional) filter. 
+
+A very simple Python example might look like this:
+
+    myList = ['Apples', 'Bananas', 'Grapes', 'Oranges']
+    myUppercaseList = [x.upper() for x in myList]
+
+    # myUppercaseList is ['APPLES', 'BANANAS', 'GRAPES', 'ORANGES']
+
+Since you can specify any evaluable expression inside the list comprehension, you could even write a function in Python and use it in the list comprehension:
+
+    def modifyString(s):
+        return "Modified: " + s
+
+    myList = ['Apples', 'Bananas', 'Grapes', 'Oranges']
+    myModifiedList = [modifyString(s) for x in myList]
+
+    # myModifiedList is ['Modified: Apples', 'Modified: Bananas', 'Modified: Grapes', 'Modified: Oranges']
+    
+You can achieve the same behavior in C# using LINQ. Here is an example of uppercasing all of the strings in a list, using both LINQ Query syntax and method syntax:
+
+    List<string> myList = new List<string> { "Apples", "Bananas", "Grapes", "Oranges" };
+
+    // LINQ query syntax
+    List<string> myUppercaseList = from x in myList select x.ToUpper();
+
+    // LINQ method syntax
+    List<string> myUppercaseList2 = myList.Select(x => x.ToUpper());
+
+(Side note: All single-dimension enumerables like `List`s have a `ToArray()` method that can convert the `List` to a fixed-size array: `string[] myArray = myList.ToArray();`)
+
+The key takeaway here is that LINQ, especially when working with C# types like `List`s and similar, allows you to easily transform the data by specifying the operation to perform one time. 
+
+You can also use LINQ to run a custom method:
+
+    public static string modifyString(string s) 
+    {
+        return "Modified: " + s;
+    }
+
+    public static void Main()
+    {
+
+        List<string> myList = new List<string> { "Apples", "Bananas", "Grapes", "Oranges" };
+
+        // LINQ query syntax
+        List<string> myUppercaseList = from x in myList select modifyString(x);
+
+        // LINQ method syntax
+        List<string> myUppercaseList2 = myList.Select(x => modifyString(x));
+
+    }
+
+Much like how Python has an `if` clause for list comprehensions:
+
+    myFilteredList = [x for x in myList if len(x) > 6]
+
+C# can do this as well using the `Where` operator that we have already seen:
+
+    List<string> myFilteredList = from x in myList
+                                  where x.Length() > 6
+                                  select x;
+    
+    // or
+
+    List<string> myFilteredList = myList.Where(x => x.Length() > 6);
+
+(Note: With method syntax, you can omit a final `Select` if you are simply returning the results of the previous method. However you must include a final `select` in LINQ query syntax.)
+
+Another comprehension that Python has is the dictionary comprehension. It is similar to a list comprehension, however you can programmatically specify both the key and the value to use in a dictionary.
+
+    myDict = {x[0]: x for x in myList}
+
+    # myDict will contain: {'A': 'Apples', 'B': 'Bananas', 'G': 'Grapes', 'O': 'Oranges'}
+
+You can do this in C# as well using LINQ. This is actually one scenario where you must use method syntax:
+
+    Dictionary<string, string> myDict = myList.ToDictionary(x => x.Substring(0,1), x);
+
+You can actually combine both types of syntax by wrapping the LINQ query syntax inside parentheses:
+
+    Dictionary<string, string> myDict = (from x in myList
+                                         where x.Length() > 6
+                                         select x).ToDictionary(x => x.Substrung(0,1), x);
+
+LINQ in C# is actually significantly more powerful than comprehensions in Python. For example, since you can chain multiple conditions and selectors in LINQ, you can run complex queries involving multiple `Where` statements more concisely. In Python, you typically would need to do such a complex query using multiple nested list comprehensions or multiple steps. Additionally, Python comprehensions do not support advanced LINQ querying like joins and aggregate operators. These techniques are in another presentation.
+
+For your presentation, please cover:
+
+- Provide an example of list and dictionary comprehension in C# using LINQ. Compare and contrast this with Python's implementation.
+- Compare and contrast the functionality of C# and Python comprehensions.
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Python List Comprehensions for C#](https://markheath.net/post/python-list-comprehensions-and)
+- [List Comprehensions in C#](https://thestandardoutput.com/posts/list-comprehensions-in-c/) at TheStandardOutput. (Note: This link might present a certificate error - the site admin has apparently not renewed their Lets Encrypt certificate. It should be safe to proceed to the site.)
+- [Example of a C# Dictionary Comprehension](https://gist.github.com/built/2896420)
+
+## LINQ Aggregate Methods
+
+LINQ offers some methods that allow you to perform *aggregate* queries against a list. These methods return a single value. This is in contrast to most LINQ methods, which return a new collection - for example, `Where` returns a new collection that contains those items that satisfy the condition given in the expression. Even if only one entry matches, you will still receive a collection with one item in it. However, aggregate methods do not return lists or collections, they return an individual value.
+
+Here is a list of the built-in LINQ aggregate methods:
+
+- [`Aggregate`] (returns the type of the collection) - Accepts a method that accepts two parameters and returns one value. This method is called repeatedly, starting with the first two elements. Each output is fed as the first output into the next iteration; the result of calling the method for the first two items is used as the first item along with the third item for the next call, and so on. A common use case is to combine a list of strings with a custom separator.
+- [`Count`] (returns `int`) - Returns an integer representing the number of items in the collection.
+- [`Max`] and [`Min`] (returns a numeric type) - For collections containing numbers or other items that can be compared with greater-than or less-than logical operators, returns the maximum or minimum value item from the collection.
+- [`Sum`] (returns a numeric type) - Returns the sum of all items. For numeric types this is simply the total of all items summed. 
+- [`Average`] (returns a numeric type) - Returns the mathematical average of a collection of numeric values.
+- [`All`] (returns `bool`) - Returns `true` if all elements in the list match a condition, otherwise `false`.
+- [`Any`] (returns `bool`) - Returns `true` if any element in the list matches a condition, otherwise `false`.
+- [`First`] (returns the type of the collection) - Returns the first item in the collection. 
+  - The related method `FirstOrDefault` will return a default value - typically `null` - if there are no items in the collection. The `First` method will raise an exception if the collection has no items.
+  - There is also `Last` and `LastOrDefault`.
+  - You can also use the `Single` method, which works the same as `First` but will throw an exception if more than one item in the collection satisfies the condition. 
+
+Many of these methods are self-explanatory. For example, `myList.Count()` simply returns an integer representing the number of items in the collection. (You can use the `Length` property on arrays and strings, but you can't use it on `List`, `Dictionary` and similar collections.) The `Max`, `Min`, `Sum` and `Average` methods return a numeric value based on the type of the values in the list.
+
+The methods `All` and `Any` expect a lambda expression inside of the method call. This lambda expression is expected to return a boolean value. The expression is called for every item in the list (for `All`) and for every item in the list until the expression returns `true` (for `Any`). For example, if you wanted to know if all numbers in a list are greater than 10, you could use: `myList.All(x => x > 10);`.
+
+The `Aggregate` method can be put to some interesting uses. A very simple example is to concatenate all the elements in a list of `string`s using a custom join string. (Python has a nice function for doing this - something like `", ".join(myStrings)` joins all the strings in a list with a comma and a space (`, `).) However, it's not limited to this - you can do any operation that accepts two values and returns one value of the collection's type.
+
+The common string concatenation example looks like this:
+
+    List<string> myStrings = new List<string> { "Apples", "Bananas", Grapes", "Oranges" };
+
+    string joinedString = myStrings.Aggregate( (x, y) => x + ", " + y );
+
+This is a new kind of lambda expression - one that accepts multiple parameters. You can simply think of it as a method that accepts two parameters - `x` and `y`. The lambda expression in this example takes the first parameter `x`, adds a `", "`, and then adds the parameter `y`. 
+
+The `Aggregate` method will cause the lambda expression to be called `n - 1` times (with `n` being the size of the collection). The first time through, the first and second items of the collection will be used. The return value of this first call will then be used as the first value in the next call, along with the third method. That result will be the first value in the next call along with the fourth method, and so on.
+
+Another way that you could write the code for `Aggregate` looks like this, which should help make it easier to understand:
+
+    public static string AggregateMethod(string x, string y)
+    {
+        return x + ", " + y;
+    }
+
+    public static void Main() 
+    {
+        List<string> myStrings = new List<string> { "Apples", "Bananas", Grapes", "Oranges" };
+
+        int listLength = myStrings.Count();
+        listLength--; // subtract one from the length
+
+        string result = myStrings[0];
+
+        for (int n = 0; n < listLength; n++)
+        {
+            result = AggregateMethod(result, n + 1);
+        }
+
+        Console.WriteLine(result);
+    }
+
+For your presentation, please cover:
+
+- Discuss the various aggregating LINQ methods
+- Provide some example use cases of a few of the methods
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
+- [LINQ Aggregate Functions](https://dotnettutorials.net/lesson/linq-aggregate-functions/)
+- [All](https://dotnettutorials.net/lesson/linq-all-operator/) and [Any](https://dotnettutorials.net/lesson/linq-any-operator/) methods
+- [First / FirstOrDefault / Last / LastOrDefault / Single / SingleOrDefault](https://riptutorial.com/csharp/example/329/first--firstordefault--last--lastordefault--single--and-singleordefault)
+
+## Object-Relational Mappers
+
+Using LINQ to query C# data objects is very useful, but where this technique gets *especially* powerful is when you introduce a database server. Many programming languages have options for providing access to a database; a common strategy for doing this is to use an *object-relational mapper*. An ORM provides a translation layer between the programming language and the database - a popular approach is to represent database tables as classes, while the ORM does the "heavy lifting" of populating collections of instances of those classes which directly represent data in the database tables.
+
+C#'s LINQ system allows libraries to write their own strategies and methods for implementing query methods. The methods we have been using up to this point work against built-in data objects. With an ORM, however, LINQ queries can be directly translated internally to SQL queries and run against the database - effectively, this means you don't have to write any SQL to access an SQL database!
+
+Quite possibly the most popular ORM for C# is Microsoft's [Entity Framework](https://learn.microsoft.com/en-us/ef/). Entity Framework is optimized to work with Microsoft SQL Server, but it is also possible to use it with many other database systems, such as MySQL, Postgres, or the file-based SQL Server Compact. There are also extensions for other systems like SQLite and Oracle Database. Using LINQ to query databases via Entity Framework is known as "LINQ-to-entities". Entity Framework is definitely a complex topic and an entire course could be taught on it, so this discussion will be relatively surface-level. 
+
+Using Entity Framework involves producing classes for all of the tables in your database, and then setting up the actual connection to the database. EF comes with tools that can automatically generate C# classes based on an analysis of a live database, or you can manually create the classes yourself. (The classes do not need to exactly conform to the database tables - you can add extra methods, properties, and so on, or you can exclude fields that you "don't care" about. The only caveat is that you can't have missing fields that require values (e.g. `NOT NULL`) if you intend to use Entity Framework to insert records.)
+
+Suppose we have a database table that looks like this:
+
+    CREATE TABLE Product (
+        id INT NOT NULL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        price DECIMAL NOT NULL,
+        taxable BIT NOT NULL DEFAULT 0
+    )
+
+You can probably already imagine how such a table could be very easily represented as a C# class:
+
+    public class Product
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public decimal price { get; set; }
+        public bool taxable { get; set; }
+    }
+
+And then you could imagine that the entire `Product` table can be represented as a C# array or list:
+
+    List<Product> productTable = ...
+
+From here, you could start imagining some queries you might want to run against the Product table. 
+
+    List<Product> expensiveProducts = from product in productTable
+                                      where product.price > 99.9
+                                      select product;
+
+    List<Product> taxableProducts = from product in productTable
+                                    where product.taxable
+                                    select product;
+
+    List<string> productStrings = from product in productTable
+                                  select $"{product.name} - {product.price.ToString("C")}";
+
+    // or
+
+    List<Product> expensiveProducts2 = productTable.Where(x => x.price > 99.9);
+
+    List<Product> taxableProducts2 = productTable.Where(x => x.taxable == true);
+
+    List<string> productStrings2 = productTable.Select(x => $"{x.name} - {x.price.ToString("C")}");
+
+Entity Framework (and ORMs in general) also handle foreign-key relationships. The way this is typically done for a one-to-many relationship is to include a backreference to the "one" side of the join on the entity for the "many" side, and a List referencing back to entities on the "many" side on the "one" side.
+
+In the previous example, let's add a SaleLine table, where we store a list of items that are included with each sale of products - sort of like a point-of-sale checkout application. 
+
+    CREATE TABLE SaleLine (
+        id INT NOT NULL PRIMARY KEY,
+        product INT NOT NULL,
+        qty INT NOT NULL DEFAULT = 1,
+        FOREIGN KEY (product) REFERENCES Product(id)
+    )
+
+(For simplicity, I'm not including a `Sale` table, although in practice you would definitely have such a table with an ID per transaction that the `SaleLine` table can reference.)
+
+The class for SaleLine would look like this:
+
+    public class SaleLine 
+    {
+        public int id { get; set; }
+        public Product product { get; set; }
+        public int qty { get; set; }
+    }
+
+and the class for Product now looks like this:
+
+    public class Product
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public decimal price { get; set; }
+        public bool taxable { get; set; }
+        public List<SaleLine> SaleLines { get; set; }
+    }
+
+This now affords you the ability to do complex queries across table joins without having to express joins in LINQ. For example:
+
+    SaleLine sl = saleLineTable.First(x => x.id == 1);
+
+    Console.WriteLine($"Sale line ID #1 is for: {sl.product.name}");
+
+In this example, we accessed the `name` column of the prodct record that matches the foreign key stored in the SaleLine record. We can similarly go the other way:
+
+    List<int> saleLinesForProduct = productTable.First(x => x.id == 5).SaleLine.Select(y => y.id);
+
+This query is a bit more complex. If we work from left to right:
+
+- `productTable` starts us off with the entire `Product` table.
+- `First` selects the first (and only) entry in the `Product`  table with an `id` of `5`. This will return a `Product` instance, *not* a list of `Product` instances - so we can now directly access the fields of that instance.
+- `SaleeLine` is the `List<SaleLine>` field of the `Product `instance - the list of all `SaleLine` records that reference this `Product`.
+- And finally, `Select` reaches into each `SaleLine` record and gets its id. The final result will be a list of `int` values (since `id` is an `int`).
+
+From here, you can start to imagine the kidns of complex queries that can be written. And the best part is you don't even need to know SQL and you definitely don't need to write `JOIN` clauses!
+
+You can also use Entity Framework to add records, delete records or even update records. For example, you can insert a record to the database by simply doing:
+
+    productTable.Add(new Product { name = 'Widget', price = 5.99M, taxable = true });
+
+You can directly edit an instance of a class representing a record in the database:
+
+    var myProduct = productTable.First(x => x.id == 10);
+    myProduct.name = "New Widget";
+
+You would then use a `SaveChanges` method on your database connection to actually cause the update to be written to the database.
+
+And finally, you can delete records:
+
+    var myProduct = productTable.First(x => x.id == 10);
+    productTable.Remove(myProduct);
+
+This is an extremely light overview of the capabiities of Entity Framework - if you have some database background, you can really leverage the power of the ORM to do things like calling stored procedures by simply calling methods in C#, accessing views as dynamically-generated classes, and so on.
+
+For your presentationm, please cover:
+
+- What is an ORM and what advantages does it offer to the programmer
+- A conceptual overview of Entity Framework. (You do not need to provide a tutorial on how to use it specifically and you don't need to create any databases - unless you really want to. We're only looking for an explanation of what the framework is and how it relates to LINQ.)
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
+- [LINQ-to-Entities Examples and Tutorial](https://www.entityframeworktutorial.net/querying-entity-graph-in-entity-framework.aspx)
+- [Introduction to LINQ with Entity Framework in Visual Studio](https://www.c-sharpcorner.com/article/introduction-to-linq-with-entity-framework-in-visual-studio2/)
+
