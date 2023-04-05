@@ -568,4 +568,3 @@ Sources to get you started (but please do seek out and use other sources as well
 
 - [LINQ-to-Entities Examples and Tutorial](https://www.entityframeworktutorial.net/querying-entity-graph-in-entity-framework.aspx)
 - [Introduction to LINQ with Entity Framework in Visual Studio](https://www.c-sharpcorner.com/article/introduction-to-linq-with-entity-framework-in-visual-studio2/)
-
