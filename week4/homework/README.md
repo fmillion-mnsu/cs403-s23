@@ -31,7 +31,11 @@ If you decide to go with Entity Framework, here is the information you need:
 > Database Server Port: 22222
 > Username: student
 > Password: cs403!
-> Connection string: campus-quest.com,22222
+> Connection string: Data Source=campus-quest.com,22222;User ID=student;Password=cs403!;Initial Catalog=ConvenienceStore
 >
-> (Note that for SQL Server, you specify the port number using a comma rather than a colon after the hostname.)
 
+(Note that for SQL Server, you specify the port number using a comma rather than a colon after the hostname.)
+
+You can also use [SQL Server Management Studio](https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16) or [Azure Data Studio](https://azure.microsoft.com/en-us/products/data-studio) to connect to the database and explore it yourself prior to setting it up in your project.
+
+The database has other tables such as Category that you don't need to worry about for this project.
