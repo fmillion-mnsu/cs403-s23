@@ -14,4 +14,6 @@ Part of this week's work will involve connecting to a database server. You do *n
 
 * Download this week's code repository from GitHub by using the "Download ZIP" option - see [the homework page](homework/README.md) for more details.
 * If you have been assigned a presentation topic, prepare your presentation for class on Friday - see [the Presentation Guide](https://mnsu.learn.minnstate.edu/d2l/le/content/6192136/viewContent/59970825/View) for guidance.
-* Work on the Week 4 homework and submit by **Tuesday, April 11th, 11:59 PM** in D2L.
+* Work on the Week 4 homework and submit by **Friday, April 14th, 11:59 PM** in D2L.
+* Take Quiz 2 on D2L by **Friday, April 14th, 11:59PM**. Remember, you get two attempts, and your grade will be the higher of the two scores you get.
+
