@@ -8,7 +8,7 @@ The homework for this week will build upon your Week 4 homework. Now, you'll spl
 
 [View this week's homework!](homework/README.md)
 
-[View this week's presentation guide!](PRESENTATIONS.md)
+[View this week's resource guide!](RESOURCES.md)
 
 ## Important Tasks For the Week
 
