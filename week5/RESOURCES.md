@@ -190,15 +190,215 @@ Sources to get you started (but please do seek out and use other sources as well
 
 ## XML Inline Documentation
 
-Coming soon
+C# offers a way to provide parsable documentation within your code. The documentation may not be as cleanly readable as simple comments, but the fact that the comments can be parsed affords many useful features, including:
+
+* The comments can describe methods, properties, etc. and those descriptions can be made available via IntelliSense
+* Automated tools can generate comprehensive reference documentation directly from your comments
+* Code quality tools can help you make sure you are writing effective documentation.
+
+C# "standard" comments follow C syntax - double-slashes (`//`) start a comment that extends to the end of the line, and the slash-star pair (`/*` and `*/`) produce a multi-line comment.
+
+C#'s parsable comments use a simplified variant of XML. All lines of XML comments begin with *three* slashes (`///`). A comment can (and almost always does) span multiple lines. A multi-line syntax for XML comments is also available but is not commonly seen - you can generate multi-line XML comment blocks by starting with `/**` (and ending with `*/` - note only one asterisk in the closing delimiter. Inside a multi-line XML comment, a leading asterisk will be ignored if it appears on *all* lines of the comment.)
+
+XML comments are specifically intended to document C# code objects. XML comments can be used to add documentation fields to most C# objects - classes, interfaces, methods, properties, fields, etc. can all have XML comments applied. Whenever an XML comment block appears in your code, it refers to the class, method, property, field, interface, etc. that *immediately* follows it.
+
+Here is a very simple example of a method with a simple XML comment:
+
+    /// <summary>
+    /// Returns the number zero.
+    /// </summary>
+    public int Zero() 
+    { 
+        return 0; 
+    }
+
+    // or
+
+    /**
+      * <summary>Returns the number one.</summary>
+      */
+    public int One()
+    {
+        return 1;
+    }
+
+What makes parsable comments so useful is that once you have written them, they are used to provide IntelliSense hints:
+
+![Image showing the IntelliSense tooltip for the Zero method, showing that the summary is provided in the IntelliSense tooltip](images/zero.png)
+
+For a simple method that returns no value and accepts no parameters, simply including the `<summary>` tag is typically sufficient. However, you can also explicitly provide comments for the parameters of a method and its return value. You can even include examples and remarks that will be rendered by documentation generators and in the Object Browser.
+
+Example:
+
+    /// <summary>
+    /// Adds two numbers together.
+    /// </summary>
+    /// <param name="x">The first number to add</param>
+    /// <param name="y">The second number to add</param>
+    /// <returns>The sum of the numbers x and y.</returns>
+    public static int Add(int x, int y)
+    {
+        return x + y;
+    }
+
+In this case, we add two `<param>` tags with a `name` attribute that indicates which parameter we are referring to, and then we provide a simple text string that describes the parameter. Finally we add a `<returns>` tag that describes the value returned by the method.
+
+This will appear in IntelliSense like this:
+
+![Image showing the IntelliSense tooltip that appears when the `Add()` method is referenced. It shows the description of the method as presented in the `<summary>` tag as well as the help text for the `x` parameter.](images/add_1.png)
+
+![Image showing the IntelliSense tooltip that appears when you hover over the `Add` method. It shows the summary text, the names of the parameters and the text in the `<returns>` tag.](images/add_2.png)
+
+Comments can also be applied to properties and fields:
+
+    /// <summary>
+    /// A property that always has the value "Hello World"
+    /// </summary>
+    public static string Hello
+    {
+        get
+        {
+            return "Hello World!";
+        }
+    }
+
+    /// <summary>
+    /// A field that the programmer can assign values to or read values from directly.
+    /// </summary>
+    public static int TheNumber = 0;
+
+The list of most commonly used XML tags is as follows:
+
+- `<summary>` - Provides a description of the method. 
+- `<param name="(name)">` - Provides a description of the relevance of a method's parameter
+- `<returns`> - Provides a description of the return value; especially how it might be calculated or its use.
+- `<remarks>` - Provides a more lengthy description of the method. Remarks are typically longer than the summary and can include multiple paragraphs.
+- `<exception cref="(exception_type)">` - Indicates that the method might throw the given exception, and describes why it might occur.
+- `<value>` - Specifically used for properties; describes the meaning of the actual value of the property (as opposed to the summary, which would typically describe the property's overall relevance to the code)
+- `<example>` - Provides one or more examples that demonstrate using the method.
+
+There is also the `<paramref>` tag, which you can use in the text area of any other tag, to refer specifically to a parameter. This makes the documentation rich and allows navigation between the different parameters as desired by the programmer.
+
+Comments can contain multiple lines. You can either use the `<para>` and `</para>` tags to separate paragraphs (similar to `<p>` and `</p>` in HTML) or you can use the `<br/>` tag to insert line breaks. Using `<para>` will produce paragraphs with a blank line between them; using `<br/>` allows you to insert arbitrary single line breaks.
+
+You can mark a section of a comment as code using the `<code>` and `</code>` tags. This is particularly useful inside of `<example>` tags.
+
+Here is a good example that uses almost all of the above tags:
+
+    /// <summary>
+    /// Adds two numbers together.
+    /// </summary>
+    /// <remarks>
+    /// This is a very redundant method that has no real appreciable use, but it demonstrates the usefulness of XML comments!
+    /// </remarks>
+    /// <exception cref="OverflowException">Occurs if you try to add numbers that would overflow the size of an int.</exception>
+    /// <param name="x">The first number to add</param>
+    /// <param name="y">The second number to add</param>
+    /// <example>
+    /// This example returns the value 3.
+    /// <code>Add(1, 2);</code>
+    /// </example>
+    /// <returns>The sum of the numbers <paramref name="x"/> and <paramref name="y"/>.</returns>
+    public static int Add(int x, int y)
+    {
+        if ((long)x + (long)y > 2147483647L) throw new OverflowException("Integer overflow.");
+        return x + y;
+    }
+
+This example will appear in the object browser as follows:
+
+![Image showing the Add method in the object browser, including all of the content entered in the comments except for the <example> section.](images/object_browser.png)
+
+One final note: You can specify XML comments for each implementation of an overloaded method (a method with multiple signatures). If you do this, IntelliSense will dynamically show the correct comments based on the method signature the programmer is using (and the programmer can cycle through the available method signatures using the up and down arrow icons in the IntelliSense tooltip).
+
+### Notes on XML
+
+XML is a markup language with its roots in HTML; if you have ever written any HTML, the angle-bracket syntax with closing slash tags will be very familiar to you. Since XML is an HTML-based language, there are certain requirements when it comes to escaping characters. One primary example is if you want to include a less-than or greater-than sign in your comment; you need to use `&lt;` and `&gt;` to do so. Since HTML entities always begin with an ampersand, you also need to "escape" the ampersand itself: `&amp;`. 
+
+Despite the XML comment style using XML-like tags, the comments themselves are not "fully-formed" XML. This is acceptable - littering your code with `DOCTYPE` statements and `xmlns` attributes would be incredibly ugly. Interally, C# collects all your comments and produces a master XML file that *is* fully formed; it is that XML data that is used to drive IntelliSense and also to produce automated documentation.
+
+For your presentation, please cover:
+
+- How to write basic comments in C# (C-style syntax)
+- Writing basic XML comments
+- At least one example other than the one in this resource guide of writing XML comments for a method
+- How IntelliSense shows the XML comments during development and how the Object Browser shows the comments
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Documentation comments](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments)
+- [XML Documentation Recommended Tags](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags#example)
 
 ## Refactoring
 
-Coming soon
+*Refactoring* is the process of modifying code structure or identifiers to make the code easier to maintain, understand or modify. In particular, it refers to modifying the structure and appearance of code without modifying its function. 
+
+Visual Studio offers many strategies for refactoring. Many options are available, often as light-bulb hints (see the section on [IntelliSense](#intellisense-and-hints)), and others can be directly invoked by you.
+
+Let's start with a very common example. Suppose you have a reason to rename a method - perhaps you've since devised a better naming scheme or the name of the method itself is just confusing. You want to rename the method, but you don't necessarily know of all of the places you have called that method in your code. You *could* use Find and Replace to do this manually, but Visual Studio offers a much more robust solution:
+
+1. Right click the method's name in its signature. For example, `public void MyMethod()` -- right click the text `MyMethod`.
+2. Choose "Rename".
+3. Simply enter a new name for the method and press Enter.
+4. You can optionally check the boxes to have the name changed in comments and strings as well. 
+
+Visual Studio automatically locates all of the references to the method in your code and autonomously updates them to match the new name of your method!
+
+There are many other types of refactoring that reflect different code styles. For example, C#'s properties are a unique language feature; some developers may be used to using a scheme such as `GetValue` and `SetValue` for properties. C# allows you to easily convert between property syntax and method syntax by using refactoring tools.
+
+Refactoring also involves helper routines that can do things like extract an interface from a class (i.e. creating an interface from the methods a class exports, which that class can directly inherit from immediately), converting a class into an abstract class, converting a `foreach` loop to a LINQ query, and so on. There are many refactoring options available in Visual Studio alone, and there are also third-party tools for Visual Studio as well as tools for Visual Studio Code that offer similar refactoring capabilities.
+
+Refactoring is a huge topic and we certainly don't have time to cover every possible scenario you might want to refactor code in, nor can we cover every possible way to refactor. Thus, this discussion is meant to serve as a light introduction to the concept of refactoring that you might find useful in your own C# development journey.
+
+For your presentation, please cover:
+
+- Explain the simplest of refactoring options - renaming an object.
+- Choose a few other refactoring tasks from the resources below and provide an example of using them. 
+- Why refactor? Name a few examples of situations where refactoring is a good idea (and optionally, if you can find any, where refactoring is a *poor* idea!)
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Code Refactoring in Visual Studio](https://learn.microsoft.com/en-us/visualstudio/ide/refactoring-in-visual-studio?view=vs-2022) at Microsoft. This page has a listing of many common refactoring operations available in Visual Studio - you can choose a few from this list for your examples.
+- [C# Refactoring](https://www.c-sharpcorner.com/UploadFile/2072a9/refactoring-in-C-Sharp/) at CSharpCorner.
 
 ## Code Analysis
 
-Coming soon
+*Code analysis* is a broad topic that involves automated analysis of source code to check for aspects such as code style, complexity, efficiency, and so on. Like refactoring, it is a very broad topic and we will only have time to scratch the surface of the depths to which code analysis can play a role in development on large source code repositories.
+
+To cause Visual Studio to run code analysis on your code, you can use the menu option Run Code Analysis under the Analyze menu. This will manually examine your code as it exists at that point in time, and potentially produce a list of warnings or recommendations in the Error List window. (Some of these may appear as messages, which may be hidden - click the blue "Messages" button to see them. Messages are typically of relatively low concern, but it is still prudent to look them over for potential code quality issues.)
+
+To configure code analysis for a project, you can choose "For <project>" under the Configure Code Analysis option under the Analyze menu.  You can specify the level of "intensity" the code analysis process uses in critiquing your code. Setting it to "6.0 All" will produce the most aggressive results, while simply choosing "6.0" is a more relaxed setting that only produces notices for more glaring code quality issues.
+
+Here is an example of running code analysis on the class and methods from the [XML Comments](#xml-inline-documentation) section:
+
+![Code Quality results in the Error List, showing two code quality issues: initializing a value to its default value and a field that is visible directly instead of being a property.](images/code_quality.png)
+
+Another key functionality of code analysis is analysis of *code metrics*. Code metrics produce measurable values for various aspects of your code. Among these are:
+
+- **Maintainability index**. An overall calculation based on a formula that tries to predict how easily the code can be maintained in the future. It is based on many of the other parameters in this list.
+- **Cyclomatic Complexity**. This metric identifies how many possible code paths exist in the code. More code paths means more potential pathways for errors or bugs, and also means an increased need for tests (if you're writing tests). 
+- **Depth of Inheritance**. Determines how many levels deep the deepest class that inherits from another class is. For example, if you have a class hierarchy like this: `Animal -> Canine -> Dog -> GoldenRetriever -> GoldenRetrieverPuppy`, you will have a depth of inheritance of `5`. While inheritance is very useful at organizing and reducing duplication of code, *overuse* of inheritance can lead to increased complexity and more chances for unexpected behavior.
+- **Class coupling**. Measures how "coupled" your classes are to each other. Essentially, this is a measure of how reusable your classes are. Classes that are tightly bound to other classes cannot be as easily reused and will increase this value.
+- **Lines of code**. The total number of lines of code in the project.
+- **Lines of Executable Code**. The total number of lines that actually compile to executable code. This excludes comments, definitions without instantiations, structural elements (e.g. braces), class definitions, etc.
+
+Here's a sample run of code metrics:
+
+![Sample output from Code Metrics. For the code analyzed, Maintainability Index is 92, Cyclomatic Complexity is 6, Depth of Inheritance is 1, Class Coupling is 3, Lines of Source Code is 69, and Lines of Executable Code is 7.](images/code_metrics.png)
+
+Code metrics provides another analytical way to provide an overview of the quality of your code. It's sort of like a "code credit score" - in particular the maintainability index, which can be a value between 0 and 100, with a higher value being better. 
+
+For your presentation, please cover:
+
+- Basic definition and purpose of code analysis and code metrics.
+- Some overview of the various code style issues that Visual Studio looks for in code analysis. One of the resources is a complete list of rules that .NET analysis checks for - select a couple of rules that stand out to you and explain why the rule is important.
+- An overview of Code Metrics, what is considered "good" for each value, and why a "bad" value is bad to begin with.
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Overview of .NET source analysis](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview?tabs=net-6) at Microsoft.
+- A [complete list](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/) of rules used for .NET code analysis. (You don't have to go over all of these - that would take a long time! Pick a few rules that stand out to you, explain the rule and why following it is good practice.)
+- [Code Metrics](https://learn.microsoft.com/en-us/visualstudio/code-quality/code-metrics-values?view=vs-2022) at Microsoft.
 
 ## SPECIAL TOPIC: MSTest
 
