@@ -52,6 +52,16 @@ Here are a few ideas that might help you think about what project you might like
 * A program to quiz students on a topic of interest.
 * A program to calculate sports statistics and perform simulations based on user-input scenarios.
 
+## Grading Rubric
+
+| Item | Percent |
+| ---- | ---- |
+| **Functionality** - Program compiles and runs as submitted without any errors. | 20% |
+| **Completeness** - Program includes all of the functionality as agreed in the proposal. | 30% |
+| **Error handling** - The program does not crash even if provided invalid input or unexpected behavior occurs. | 20% |
+| **Organization** - Program appropriately uses classes, interfaces, etc. to organize functionality. Program separates program logic from user interface elements, e.g. by using a class library or at minimum by separating code into different classes. | 15% |
+| **Comments** - Program includes appropriate XML comments. | 15% |
+
 ## Notes
 
 *You cannot use the scenario of a convenience store checkout program for your final*, since we used that scenario for many of our homework assignments. Be creative - come up with your own ideas! If you are struggling, use some of the listed ideas above to help you brainstorm. If you *really* are unsure of what to do, contact me and I'll help you with some ideas. Again, if you have not submitted any proposal to me and you have not contacted me by 11:59 PM on April 26th **I will assign you a project**!
