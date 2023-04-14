@@ -13,3 +13,4 @@ Use the following links to access the course materials:
 * [Week 5: Documentation, Organization, Refactoring and Testing](week5/README.md)
 * [Week 6: Parallel Programming, Asynchronous Methods, Threading and More!](week6/README.md)
 * [Week 7: Source Control, CI/CD, Extra Topics, Wrap-Up!](week7/README.md)
+* [Final Exam Information](FINAL.md)
