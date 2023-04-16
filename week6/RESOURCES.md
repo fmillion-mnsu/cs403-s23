@@ -5,14 +5,14 @@ This week's presentations will discuss multithreading, parallelism, threading an
 **Wednesday**:
 
 - [Overview of Parallel Computing](#overview-of-parallel-computing)
-- [Locks, Semaphores, and Mutexes](#locks-semaphores-and-mutexes)
+- [C# Synchronization Primitives](#c-synchronization-primitives)
 - [Basic C# Threading](#basic-c-threading)
 
 **Friday**:
 
 - [C# Concurrent Collections](#c-concurrent-collections)
 - [C# Parallel Tasks](#c-parallel-tasks)
-- [C# Parallel LINQ](#c-parallel-linq)
+- [C# async programming](#c-async-programming)
 - [Debugging Multithreaded Code](#debugging-multithreaded-code-in-c)
 
 ## Overview of Parallel Computing
@@ -144,7 +144,7 @@ Sources to get you started (but please do seek out and use other sources as well
 - [Introduction to Parallel Computing](https://www.geeksforgeeks.org/introduction-to-parallel-computing/#) at GeeksForGeeks. Note that the kind of parallelism we are discussing is their third point - *task-level* parallelism. 
 - [What is Parallel Programming and Multithreading?](https://www.perforce.com/blog/qac/multithreading-parallel-programming-c-cpp). This article talks about C/C++; don't worry about the language specifics, focus on the theory and concept.
 
-## Locks, Semaphores and Mutexes
+## C# Synchronization Primitives
 
 There are three main types of objects used for *thread synchronization*. These objects are all very closely related and perform similar functions, but differ in their scope. A program or a piece of code that fully and appropriately uses thread synchronization is said to be *thread-safe*. You may see this term used in reference to programming libraries - a developer might tell you that their library is *thread-safe*, meaning that you generally don't need to worry about using locks and similar objects when using the library. (There are some exceptions to this however!)
 
@@ -389,13 +389,11 @@ Sources to get you started (but please do seek out and use other sources as well
 
 coming soon
 
-## C# Parallel Tasks
+## C# Parallel Tasks and LINQ
 
 coming soon
 
-## C# Parallel LINQ
-
-coming soon
+## C# async programming
 
 ## Debugging Multithreaded Code in C#
 
