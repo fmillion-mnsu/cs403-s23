@@ -33,10 +33,10 @@ Since the final programming project is intended to give you a chance to demonstr
 
 * Reading user input and parsing it into different types (such as numeric types). *Don't forget exception handling!*
 * Debugging statements (e.g. `Debug.WriteLine`).
-* Querying collections of user data.
+* Querying collections of user data. (This could also mean using LINQ to work with collections of in-app data, such as game objects.)
 * Separating code that performs calculations and logic from user interface code (with a class library)
-* Providing the user multiple functions to perform with the data.
-* Proper error handling (e.g. data validation) and exception catching.
+* Providing the user multiple functions to perform with the data. (This is loosely defined - most games would qualify by design since the user must make decisions during play.)
+* Proper error handling (e.g. data validation) and exception catching. (At a minimum, you must catch invalid input from the user and react appropriately.)
 * If your application uses a dataset, such as a product catalog, list of statistics, etc. that data must be stored externally, such as in a CSV file, and must be loaded in via reading the file. You may not put large amounts of data in C# enumerable initializers. (Use common sense with this - a small list of numbers is fine, such as needed values for some game logic, but a list of complex data that you will be querying should be stored separately.)
 * Use of classes, interfaces, properties, etc. to logically and cleanly organize objects in code. As appropriate, use abstract classes, subclasses and interface inheritance.
 * Use of XML code comments on your methods, classes, etc. 
