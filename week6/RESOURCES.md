@@ -160,6 +160,8 @@ C# has specific classes for `Semaphore`, `Mutex` and `EventWaitHandle` (and its 
 
 Since threading can be quite a complex topic, you don't need to present any specific code for *how* to do threading in C# - that will be in another presentation. Your presentation's goal is to explain the various types of thread synchronization available in C#. Additionally, you should try looking into threading *basics* in another language (e.g. Python). Don't delve too deeply into the topic - it can get complex very quickly. But, for example, Python *Does* have an explicit `Lock` class that you use for locking, while C# does not. Python also has `Semaphore` objects but lacks system-wide `Mutex` objects and has no `EventWaitHandle` equivalent. Another example is JavaScript, which implements the concept of *web workers* - similar to the `Thread` in C#, i.e. tasks that run in the background.
 
+There's actually another type of "multithreaded" programming that is closely related to threading, which is known as *asynchronous programming*. This strategy is not concerned with maximizing *performance*, but rather it is concerned with maximizing *responsiveness and availability*. Async programming can seem just as complex as threading and there will be a separate presentation on Friday to cover it.
+
 In your presentation, please cover:
 
 - What are the four core types of threading synchronzation classes or objects in C#? Provide a brief description of each.
