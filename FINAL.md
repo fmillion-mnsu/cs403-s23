@@ -22,7 +22,7 @@ Since the overarching goal for the course is more about learning *how* programmi
 The final exam consists of three components:
 
 - A **quiz** taken on D2L. The quiz will contain some questions from previous quizzes as well as new questions. You should study your notes and materials, but the quiz is open-book and open-notes - the only restriction is that **you may not ask others for help on the questions or to give you the answers** - everyone must *independently* take the quiz on their own.
-- A **design document** for a simple C# program. The purpose of your program is quite open-ended. You can take some inspiration from some of the homework projects we've done (but you can't use the homework as your final!), or you can try something totally new if you're up for the challenge. See the rest of this document for information on the items your program must include. Your design document must include a full description of the program you intend to write, the functionality it will have and the ways the program will demonstrate your understanding of the programming concepts we discussed in this course.
+- A **design document** for a simple C# program. [A template is available on D2L at this link](https://mnsu.learn.minnstate.edu/d2l/le/content/6192136/viewContent/60233331/View). The purpose of your program is quite open-ended. You can take some inspiration from some of the homework projects we've done (but you can't use the homework as your final!), or you can try something totally new if you're up for the challenge. See the rest of this document for information on the items your program must include. Your design document must include a full description of the program you intend to write, the functionality it will have and the ways the program will demonstrate your understanding of the programming concepts we discussed in this course.
   - I will open a D2L dropbox for you to submit your proposal for a final project and I will either approve it or suggest additions/changes. The due date on the dropbox will be **Wednesday April 26th** at 11:59 PM. If you have not submitted a project proposal by this time **I will assign a project to you**!
   - I will respond to all project plan submissions within 24 hours. I will either accept your proposal as-is, or I will add or modify the requirements you set forth. In either case, you can begin working on your code whenever you're ready. However, I suggest that you submit your proposal and get approval *before* you start investing a lot of time into writing your code, in case we need to make changes to your project. Submit your plan ASAP!
 - The **C# project** for your program. Your code should be functional and run as submitted. 
@@ -51,6 +51,16 @@ Here are a few ideas that might help you think about what project you might like
 * A gradebook program - calculating student grades based on assignments.
 * A program to quiz students on a topic of interest.
 * A program to calculate sports statistics and perform simulations based on user-input scenarios.
+
+## Grading Rubric
+
+| Item | Percent |
+| ---- | ---- |
+| **Functionality** - Program compiles and runs as submitted without any errors. | 20% |
+| **Completeness** - Program includes all of the functionality as agreed in the proposal. | 30% |
+| **Error handling** - The program does not crash even if provided invalid input or unexpected behavior occurs. | 20% |
+| **Organization** - Program appropriately uses classes, interfaces, etc. to organize functionality. Program separates program logic from user interface elements, e.g. by using a class library or at minimum by separating code into different classes. | 15% |
+| **Comments** - Program includes appropriate XML comments. | 15% |
 
 ## Notes
 
