@@ -10,10 +10,10 @@ This week's presentations will discuss multithreading, parallelism, threading an
 
 **Friday**:
 
-- [C# Concurrent Collections](#c-concurrent-collections)
-- [C# Parallel Tasks](#c-parallel-tasks)
+- [Thread Pools](#thread-pools)
+- [Parallel Tasks]
+- [Concurrent Collections](#c-concurrent-collections)
 - [C# async programming](#c-async-programming)
-- [Debugging Multithreaded Code](#debugging-multithreaded-code-in-c)
 
 ## Overview of Parallel Computing
 
@@ -243,7 +243,6 @@ This code makes use of a `lock`, and as a bonus it even uses a List (an enumerab
 
 When you run the program, you'll notice that all of the threads "wait" at the same time. The entire program will only take as long as the slowest thread takes to run. While all we're doing is `Thread.Sleep()`, imagine if the thread was performing a very compute-intensive process. To illustrate, look at this code, which would be the non-threaded equivalent of the above:
 
-
     namespace ThreadPlayground
     {
         internal class Program
@@ -370,11 +369,11 @@ When I ran this code, it took my computer about 6.4 seconds. Definitely faster.
 
 *But Wait!* Why isn't it *much* faster? I have four cores in my system - I should have seen about 2 seconds or so, right?
 
-Ah yes, I should. There is a reason for that, and it's that I basically tried to *overuse* my system. If you have multiple processor cores, and you run one thread per core, things will run along extremely quickly. However, if you try to run more *threads* than you have *cores*, you will see significant drops in performance. I tried changing the code to do 500 threads with 1,000,000 numbers each, and the program actually took *over 17 seconds* to run!
+There is a reason for that, and it's that I basically tried to *overuse* my system. If you have multiple processor cores, and you run one thread per core, things will run along extremely quickly. However, if you try to run more *threads* than you have *cores*, you will see significant drops in performance. I tried changing the code to do 500 threads with 1,000,000 numbers each, and the program actually took *over 17 seconds* to run!
 
 Before multi-core processors, we still had threads. Threading is what allowed you to run multiple programs at once on your computer, even without multiple cores. Even in 2002, you could play an MP3 song on your computer while you wrote a document in Word, or you could download a file from the Internet while reading a web page at the same time. This worked because of threading. However, if we don't have as many *cores* as we have *threads*, the CPU cores must regularly perform what is known as a *context switch*. In a sense, it basically stores the entire state of the processor core to memory, then switches to another thread by loading in a different state. To provide the "illusion" of multiple processes running simultaneously on one core, this can happen hundreds of times per second. But each context switch takes *time*. In the example where I run 500 threads on a four-core CPU, I'm asking each CPU core to run *125 threads* at a time. (And that says nothing for all of the other threads that may already be running on my system from Windows and other applications, and indeed Visual Studio itself!) This means that the CPU is spending a *lot* of time doing context switches, so much so in fact that the total time taken to do 500 simultaneous threads is actually *more* than just doing the operations sequentially on one thread.
 
-We could write our own code to limit the number of threads to the number of CPU cores, but there's a better way. On Friday, we'll hear about C#'s `Parallel` class - it's basically a "thread runner" that handles things like this for us. We get to specify how many threads should run in parallel (and we can query the system to determine how many CPU cores we have to do that), and we can even simplify adding all those results to the `Averages` list. Stay tuned!
+We could write our own code to limit the number of threads to the number of CPU cores, but there's a better way. Another presentation will cover the `ThreadPool`, which lets the .NET framework handle putting various tasks on threads. You can specify a number of threads (typically the number of CPU cores or threads in your computer), provide the jobs you want to run at any time, and let .NET handle actually scheduling and executing the tasks on the threads. More on this to come!
 
 In your presentation, please cover:
 
@@ -387,16 +386,227 @@ Sources to get you started (but please do seek out and use other sources as well
 - [The C# lock statement](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock).
 - [Why too many threads hurts performance?](https://www.codeguru.com/cplusplus/why-too-many-threads-hurts-performance-and-what-to-do-about-it/)
 
+## Thread Pools and Parallel Tasks
+
+In a previous presentation, we saw how you can achieve running multiple tasks at the same time within your program. However, we saw that if you try to "overprovision" your system - trying to run *too many* threads at once - you can actually see a *drop* in performance. This is because, as we mentioned, the act of *switching* threads on a single CPU core takes time, and putting too many threads on one core actually slows down the overall execution time since the core is taking so much time to switch threads.
+
+Now, we'll learn how you can alleviate this problem by controlling how many threads your code runs on. You can certainly write your own code to track threads (and in other languages, you may have to do just that), but the .NET framework offers us a nice convenient way to manage threads and tasks.
+
+Before we cover the .NET `ThreadPool` though, and in the vain of this course, let's first discuss the theory behind how you would write your own library to manage threads.
+
+### A library for thread management
+
+In our previous example, we had 1,000 tasks to run, but on my system we only have eight cores to run them on. In that example, we simply spawned 1,000 threads and started them all at once. We found that the process took significantly *longer* than simply running the code on a single thread, one item at a time, sequentially. The first thing we need to do is think about how we might control the threads, so that only eight threads are actually running at one time.
+
+Here is some pseudo-code that explains the basic principle of doing this:
+
+    Assume n = number of thread we want to run simultaneously.
+
+    Create n threads.
+
+    For each task we want to run,
+        add the task to a list.
+    
+    For each task in the list...
+        While true:
+            Look for a free thread that isn't running any code.
+            If one is found, 
+                put the task on that thread,
+                start the thread, and
+                continue the foreach loop.
+            Else,
+                Wait 100 milliseconds.
+            Continue the while loop.
+    
+    For each thread,
+        wait for the thread to finish.
+    
+What's happening here is that we create only enough thread objects to run the number of threads we want to run. Then we iterate over all of the tasks we need to run. Each time, we look through our threads to see if there is a thread that is not currently executing any code; if so, we tell that thread to start executing the task and then go on to the next task. However, if all threads are taken, we wait a short time and then we again look for a free thread. This keeps happening until a free thread is found. Ultimately, if you follow the logic, you'll see that by the time we reach the end of the code, all the threads have finished running.
+
+You certainly could write this code yourself in C#. However, we're going to use a built-in .NET framework class known as the `ThreadPool` to accomplish the same effect without having to "re-invent the wheel".
+
+### The `ThreadPool` class
+
+The `ThreadPool` class is a way for us to run many threads at the same time and to not have to deal with scheduling execution on the threads manually. `ThreadPool` is a *global static* class - we do not need to instantiate it. It's sort of like `Console` - it's always available as long as you import its namespace.
+
+First, we tell `ThreadPool` how many threads we want it to run:
+
+    // Tell the system to only allow 8 threads to run.
+    // The second parameter is for I/O threads, we can just set that to 8 since we're not using much I/O.
+    ThreadPool.SetMaxThreads(8, 8);
+
+Then we can simply queue work items on the thread pool directly. The thread pool is basically always "running" - as soon as it gets tasks to do, it starts doing them.
+
+    int threadCount = 1000;
+    for (int i = 0; i < threadCount; i++)
+    {
+        ThreadPool.QueueUserWorkItem(ThreadMethod);
+    }
+
+One caveat is that the `ThreadPool` does not have any built-in method for tracking the threads themselves - that is, there's no "wait for all threads" functionality. So we need to provide that ourselves. Luckily, we can use another threading primitive - the `CountdownEvent` - to achieve this for us. A `CountdownEvent` is a thread-safe object that implements a countdown - you set it to an initial value and it is decremented each time it is "signalled". Once the countdown event reaches 0, it "unlocks" - and you can call a method that waits for this unlock to occur.
+
+Here is the code from the previous presentation, but updated to use a `ThreadPool`:
+
+    internal class Program
+    {
+
+        static List<int> Averages = new List<int>();
+        public static readonly object LockObject = new object();
+
+        public static CountdownEvent ce;
+
+        static void ThreadMethod(object? stateInfo)
+        {
+            Random rnd = new Random();
+            List<int> Randoms = Enumerable
+                .Range(0, 500000)
+                .Select(x => rnd.Next(0, int.MaxValue))
+                .ToList();
+            int avg = (int)Randoms.Average();
+
+            lock (LockObject)
+            {
+                Averages.Add(avg);
+            }
+
+            ce.Signal(); // decrement the countdown
+        }
+        static void Main(string[] args)
+        {
+
+            ConcurrentDictionary<int, int> testDict = new ConcurrentDictionary<int, int>();
+
+            testDict.AddOrUpdate(1, x => 1, (x, y) => x + 1);
+
+            DateTime startedTime = DateTime.UtcNow;
+
+            // Tell the system to only allow 8 threads to run.
+            // The second parameter is for I/O threads, we can just set that to 8 since we're not using much I/O.
+            ThreadPool.SetMaxThreads(4, 4);
+
+            // number of threads
+            int threadCount = 1000;
+            ce = new CountdownEvent(threadCount);
+            for (int i = 0; i < threadCount; i++)
+            {
+                ThreadPool.QueueUserWorkItem(ThreadMethod);
+            }
+
+            ce.Wait(); // wait for threads to finish
+
+            int max = Averages.Max();
+
+            Console.WriteLine($"Largest average: {max}");
+
+            TimeSpan timeTaken = DateTime.UtcNow - startedTime;
+
+            Console.WriteLine($"Time taken: {timeTaken.TotalMilliseconds/1000:0.##} seconds");
+        }
+    }
+
+On my system, this code ran in under 3 seconds. Mission accomplished - we've accelerated our code by using multiple threads!
+
+You may wonder why we don't get a one-to-one increase in performance - why doesn't running the code on eight threads result in an 8x speedup? The two main reasons are thread context switching (like we already discussed) and thread synchronization (i.e. `lock`s and similar.) Even though we are now only running one thread per core, we are still not the only application running on the system - we're still competing with all of the other programs running on the system, and that involves thread context switches! This is unavoidable, and the truth is that you will rarely ever see a 100% per-thread performance improvement.
+
+In your presentation, please cover:
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
+
+
+
+
 ## C# Concurrent Collections
 
-coming soon
+In a previous example, we used a `lock` statement to protect accesses to a `List`. This is because, with multiple entities accessing the list, we could run into a situation where multiple threads are simultaneously trying to access the `List`. Since this is a rather common scenario, C# provides some classes that can alleviate the problem for us, by automatically wrapping calls that manipulate the collection in `lock` statements internally (i.e. you don't have to write `lock` blocks, because the class's own code includes them wherever the data in the collection is changed.)
+
+The `System.Collections.Concurrent` namespace includes a handful of generic collection types that support thread-safety:
+
+* `ConcurrentBag` - roughly the equivalent of a `List` - an unordered collection of jbects. 
+* `ConcurrentDictionary` - equivalent of a `Dictionary`.
+* `ConcurrentStack` and `ConcurrentQueue` - implementations of a *LIFO* and *FIFO* list. A Stack accepts items and returns them in reverse order (imagine physically stacking objects vertically), and a FIFO accepts items and returns them in order (imagine an assembly line).
+
+Let's talk about one scenario in which we would want to use the thread safe versions of a collection - in this case, a `Dictionary`. In a typical dictionary, a common pattern of access might be to first check whether a key exists in the dictionary; if not, we add an item to the dictionary using that key, but if so, we can react differently - change the key before we add, present an error to the user, etc. 
+
+This code might look like this:
+
+    if (testDict.ContainsKey(1))
+    {
+        Console.WriteLine("Entry already exists.");
+    }
+    else
+    {
+        testDict.Add(1, "newValue");
+    }
+
+This looks fine on the surface, and indeed works fine when you're not dealing with multithreasding. However, in a multithreaded scenario, *imagine what might happen if another thread just so happened to add a value with the key `1` to the dictionary immediately after the `testDict.ContainsKey` if statement runs, but* ***before*** *the `testDict.Add` method is called!*
+
+In that scenario, an error would occur, and it wouldn't even be immediately obvious why. You checked to see if the key existed, it didn't, so you tried to add it...and suddenly it does already exist!
+
+This is a perfect scenario in which we need to use thread safety. One simple method is to wrap the entire block above in a `lock` statement. However, since scenarios like this are quite common, C# also offers us the `ConcurrentDictionary` class. It subclasses `Dictionary`, so it can mostly be used exactly like a dictionary. However, it offers thread-safe methods for doing operations like the above one. 
+
+For example, `ConcurrentDictionary` adds an `AddOrUpdate` method. Using that method, you can specify two things - a value for if the key does not exist, and a lambda function that will be called if the value already does exist. For example:
+
+    myConcurrentDict.AddOrUpdate(1,"mewValue", (key, value) => { Console.WriteLine("Entry already exists."); return value; });
+
+In this case we print to the console and return the same value, so the result would be the same as above. However, we could also use this method to store an *incrementing* value. 
+
+    // Non-thread-safe version
+    if (testDict.ContainsKey(1))
+    {
+        testDict[1] = (testDict[1] + 1);
+    }
+    else
+    {
+        testDict.Add(1, 1);
+    }
+
+    // Thread-safe version
+    testDict.AddOrUpdate(1, 1, (k, v) => k + 1);
+
+Also note that the thread-safe code can be written even more concisely!
+
+These collection objects implement an interface known as `IProducerConsumerCollection`. This is an access paradigm in which different threads *produce* messages and data, and other threads *consume* the data. This is covered in more detail when we talk about async programming. A simple example of using the produer/consumer pattern is in the online resources below; it's essentially an implementation of a `Queue`, where messages are posted by one thread and read by another. We won't cover the actual implementation of this in C#, but you should mention the consumer/producer pattern conceptually.
+
+In your presentation, please cover:
+
+- The main concurrent collection classes in C#
+- One scenario where you'd use them - you can use the dictionary scenario as described here.
+- A high-level description of the producer/consumer pattern. (No code required, but if you do write and demo some code, even better!)
+
+Sources to get you started (but please do seek out and use other sources as well!):
 
 ## C# Parallel Tasks and LINQ
 
-coming soon
+Another very common scenario that we would use multithreaded programming for is to iterate over a large list of items and perform some operation on each item. Many operations use this pattern - AI training and modeling, media encoding and more utilize this very pattern of operations as part of their core functionality. 
+
+The way that you are likely most familiar with doing this is using `foreach` (or `for x in y` in Python, etc). This method is not multithreaded, and thus you wouldn't have to worry about thread safety, but you would not gain any of the advantages of running your code on multiple threads and cores at once.
+
+In a previous presentation we looked at a way of setting up a multithreaded execution environment. However, the problem we faced was that, once we start enough threads, we start to *lose* performance rather than gain it. To alleviate not only this problem but also improve the code structure, we can utilize built-in C# functionality to achieve the same effect as a `foreach` loop with threading, but with more control over the process. To further ensure thread safety, we'll use the `ConcurrentBag` class to replace the `List` that holds the results of each individual calculation.
+
+
+In your presentation, please cover:
+
+Sources to get you started (but please do seek out and use other sources as well!):
 
 ## C# async programming
 
+Ok, here we go. Async programming. This is a topic that can be very confusing - and partly it's because the language constructs themselves are a bit confusing, since we have to understand a few different things things at once.
+
+First, what is an async method? Basically, it's a task that's meant to run in the background. We've covered ways to do this with threads. But what makes an async method different is that it returns a value, and it's expected that it will be doing something that will take some amount of time. However, during that task's operation, we don't want the program to "lock up" while it waits for the result.
+
+Have you ever been using a program and suddenly the entire program becomes completely unresponsive? On a Mac, you might get "the spinning beachball", and on Windows, you might get "the spinning blue circle" and the application might fade in color to let you know it's "stuck". This is the sort of thing that can happen if the developer of the program did not implement async programming. (It's also possible that it's many other bugs, but one of the main goals of async programming is to eliminate this problem.)
+
+Let's design a completely useless scenario that still demonstrates where async programmin comes into play. Suppose we make a "fidget keyboard" program - you can type letters and it makes things pop up on the screen. However, while this is happening some other process is running in the background. 
+
+
+
+In your presentation, please cover:
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
 ## Debugging Multithreaded Code in C#
 
-coming soon
+In your presentation, please cover:
+
+Sources to get you started (but please do seek out and use other sources as well!):
