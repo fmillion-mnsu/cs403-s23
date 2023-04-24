@@ -11,7 +11,7 @@ This week's presentations will discuss multithreading, parallelism, threading an
 
 **Friday**:
 
-- [Parallel](#c-parallel)
+- [Parallel Tasks](#c-parallel-tasks)
 - [Concurrent Collections](#c-concurrent-collections)
 - [Parallel LINQ](#c-parallel-linq-and-wrapping-up-multithreading)
 - [C# async programming](#c-async-programming)
@@ -387,7 +387,7 @@ Sources to get you started (but please do seek out and use other sources as well
 - [The C# lock statement](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock).
 - [Why too many threads hurts performance?](https://www.codeguru.com/cplusplus/why-too-many-threads-hurts-performance-and-what-to-do-about-it/)
 
-## Thread Pools and Parallel Tasks
+## Thread Pools
 
 In a previous presentation, we saw how you can achieve running multiple tasks at the same time within your program. However, we saw that if you try to "overprovision" your system - trying to run *too many* threads at once - you can actually see a *drop* in performance. This is because, as we mentioned, the act of *switching* threads on a single CPU core takes time, and putting too many threads on one core actually slows down the overall execution time since the core is taking so much time to switch threads.
 
@@ -513,7 +513,7 @@ In your presentation, please cover:
 
 Sources to get you started (but please do seek out and use other sources as well!):
 
-## C# Tasks and Parallel
+## C# Parallel Tasks
 
 We've looked at two ways to run multiple pieces of code at the same time. Now we'll see yet another way to accomplish it. C# has a `Parallel` class that lets us run multiple operations in...you guessed it...parallel!
 
@@ -635,6 +635,10 @@ In your presentation, please cover:
 - A high-level description of the producer/consumer pattern. (No code required, but if you do write and demo some code, even better!)
 
 Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Thread-safe collections](https://learn.microsoft.com/en-us/dotnet/standard/collections/thread-safe/) at Microsoft.
+- [System.Collections.Concurrent namespace](https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent?view=net-8.0) in C# Reference.
+- [Concurrent collections in C#](https://code-maze.com/csharp-concurrent-collections/) at Code Maze.
 
 ## C# Parallel LINQ and Wrapping Up Multithreading
 
@@ -764,7 +768,16 @@ to
 
     var Averages = instances.AsParallel().Select(x => ThreadMethod()).ToList();
 
+You can also use it in query syntax calls:
+
+    for x in Averages.AsParallel()
+        select ThreadMethod();
+
 Before I added this single method call, the code took 8 seconds to run on my machine. After adding it, it was cut down to 3 seconds. Still not *quite* as fast as using `Parallel.For`, but there are also other considerations - LINQ can definitely take up some CPU time, and the fact that we're letting LINQ handle the thread synchronization could be a factor too. But you definitely can't beat the ease with which we made this code parallel!
+
+There are other methods that are part of Parallel LINQ. For example, you can insert `AsSequential` method calls into your query chain to force parts of the query to run without parallelism. Or, you can use `AsOrdered` to ensure that the results of the parallelized query won't become scrambled in the results. (Remember that when we work with multiple threads, the threads can come back with results at any time, and it's hard to impossible to predict exactly when that will occur. Using `AsOrdered` may slow down the query but it will ensure that the results look just like if you had run the query without parallelism). You can also use `WithDegreeOfParallelism` to explicitly specify how many threads you want to run (normally .NET figures this out on its own based on your system).
+
+One final aspect of PLINQ that's worth noting: it is unlikely that using parallel LINQ to access data on a *database server* is going to yield any performance improvements. This is because, even if you have multiple processors and threads in your system, the speed of processing a database query is dependent on the database *server*, not on your local machine. If you have a database server running on a single-core system and you access it with a system with 32 cores, your database queries will still only perform as they would on a single-core system (and vice-versa - even if you have a single-core system, if the database system is multi-threaded, you will see those benefits in the speed of your queries regardless). Because of this, PLINQ is only useful when you are processing data *within C# itself*. This is why the `AsParallel` method is an "opt-in" strategy - you only invoke parallelism when it is useful to do so, because as we've seen, parallelism can actually *slow down* code that is not optimized for parallel processing.
 
 To summarize:
 
@@ -778,7 +791,15 @@ As we wrap up talking about parallel programming, there's one other aspect we're
 
 In your presentation, please cover:
 
+- What is Parallel LINQ? How is it similar and different to traditional LINQ?
+- How can you add parallelism to a LINQ query? (hint - it's one change!)
+- Discuss a couple of the other options for Parallel LINQ and how they are useful.
+
 Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Parallel LINQ](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/introduction-to-plinq) at Microsoft.
+- The [AsParallel](https://learn.microsoft.com/en-us/dotnet/api/system.linq.parallelenumerable.asparallel?view=net-7.0) method.
+- [A beginner's guide to PLINQ](https://www.codeguru.com/csharp/a-beginners-guide-to-plinq/).
 
 ## C# async programming
 
@@ -790,6 +811,132 @@ Have you ever been using a program and suddenly the entire program becomes compl
 
 Let's design a completely useless scenario that still demonstrates where async programmin comes into play. Suppose we make a "fidget keyboard" program - you can type letters and it makes things pop up on the screen. However, while this is happening some other process is running in the background. 
 
+We'll start with this basic program:
+
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            while (true)
+            {
+                ConsoleKeyInfo cki = Console.ReadKey(true);
+                Console.WriteLine("You pressed key: " + cki.Key.ToString());
+                if (cki.Key == ConsoleKey.Q)
+                {
+                    Console.WriteLine("Exiting.");
+                    return;
+                }
+            }
+        }
+    }
+
+If you run this program, it will simply print out each key scancode as you press keys on your keyboard. If you press the `q` key, the program exits.
+
+Now, let's imagine we are adding in some task that runs in the background and is expected to take some time.
+
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            PretendToDownload();
+
+            while (true)
+            {
+                ConsoleKeyInfo cki = Console.ReadKey(true);
+                Console.WriteLine("You pressed key: " + cki.Key.ToString());
+                if (cki.Key == ConsoleKey.Q)
+                {
+                    Console.WriteLine("Exiting.");
+                    return;
+                }
+            }
+        }
+
+        static void PretendToDownload()
+        {
+            Console.WriteLine("Pretending to download a file...");
+            Thread.Sleep(10000);
+            Console.WriteLine("Download finished.");
+            return;
+        }
+    }
+
+Run this program and notice that, while the file is downloading, you cannot press any keys. (Well, you can, but the "user interface" - in this case, the console - won't actually show any of the keys you pressed until after the download "finishes"). Once the download "finishes", all the keys you pressed will suddenly all happen at once.
+
+I'm sure you've seen this happen on your computer. Something is taking a while, you get impatient, so you do it again. And then in the end it actually happens twice. Or three times. Or more times depending on how impatient you were. :-)
+
+We could solve this by using threading. We could put the download on a background thread and let it run. However, that requires us to delve into `ThreadPool`s or managing `Thread`s or similar constructs. That could be a lot of work for a simple task like this. And we're not really concerned with improving *performance* of the download or the program as a whole, we're simply trying to have the program not "block" during the download. This is where `async` comes in.
+
+Async programming has two main keywords: `async` and `await`. The `async` keyword defines a method as asynchronous - this means that it will essentially automatically be run on its own thread. Async methods generally always return `Task` objects - `Task` objects are similar to delegates (again, we'll see those next week) in that they represent a method that is being run. In essence, an async method returns an instance of a method. It sounds kind of weird, but that's essentially what's happening!
+
+To make our method asynchronous, we will write a "wrapper" method that 
+
+    static async Task PretendToDownloadAsync()
+    {
+        await Task.Run(() => PretendToDownload());
+        return;
+    }
+    
+This syntax might seem a bit confusing. The method signature looks like we should be returning a `Task` object, but we just returned nothing - essentially we returned `void`. Why does this work? Because the `async` keyword tells the C# compiler that this method, by design, actually returns a `Task`. If we wanted to return a value from the method rather than nothing, we'd use generics to return a `Task` with an associated type, for example: `Task<int>`.
+
+Now, let's talk about that `await` statement. `await` is similar to a `Thread.Join` call - it tells the code to stop and "await" the results of some other thread. However, we can't "await" something that isn't being performed in the background!
+
+To make our call to `PretendToDownload` actually run in the background, we use a `Task`. Recall that we said that a `Task` is basically a pointer to a method. Using the `Run` method of a `Task` causes the task to be run on another thread. We can then use the `await` keyword to tell the current code to "await" the `Task`'s completion. In this case, we simply use a lambda function to call the PretendToDownload method.
+
+Here's what we have now:
+
+internal class Program
+    {
+        static void Main(string[] args)
+        {
+            PretendToDownloadAsync();
+
+            while (true)
+            {
+                ConsoleKeyInfo cki = Console.ReadKey(true);
+                Console.WriteLine("You pressed key: " + cki.Key.ToString());
+                if (cki.Key == ConsoleKey.Q)
+                {
+                    Console.WriteLine("Exiting.");
+                    return;
+                }
+            }
+        }
+
+        static async Task PretendToDownloadAsync()
+        {
+            await Task.Run(() => PretendToDownload());
+            return;
+        }
+
+        static void PretendToDownload()
+        {
+            Console.WriteLine("Pretending to download a file...");
+            Thread.Sleep(10000);
+            Console.WriteLine("Download finished.");
+            return;
+        }
+    }
+
+If you run this code, you'll notice that even though the download task is pausing for 10 seconds, you're still able to press keys and see them appear immediately on the console. 
+
+If you were to pretend that the console were an actual graphical application, not using `async` would cause the entire program to freeze up while the download was underway, much like how the console stopped printing your keystrokes. For you, the user, this means a spinning beachball or a spinning blue ring. Not fun! But with `async` tasks, we can easily push background tasks onto a thread without having to actually write any threading code of our own.
+
+Many methods in the C# standard library have `Async` versions, which function very much like the wrapper we wrote for our method. The convention in C# and .NET is that any method that is defined as `async` has a name ending with `Async`. While this isn't strictly required, it's a good idea to follow the naming standards when writing your own methods.
+
+Async programming can be a tricky topic since there is a lot of indirection going on. You have methods being passed around like parameters and you have threads being created in the background for the background. Don't feel bad if you can't quite grasp async programming right up front - it's definitely a tricky topic and you'll want to practice with it if you design applications that would benefit from it. This discussion is only meant to serve as a brief introduction and to help you start to understand what's actually going on with async programming.
+
+Async programming won't show up on the homework.
+
 In your presentation, please cover:
 
+- What is async programming? How does it compare to using threads? (hint: it's typically used for application responsiveness rather than performance)
+- How do you make a method `async`? What is the return type of `async` methods?
+- What does `await` do when you use it on a running async method?
+- See if you can come up with a simple scenario where async programming would be useful. You don't have to code it, but just describe it.
+
 Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Asynchronous programming](https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-scenarios) at Microsoft.
+- [Task-based Asynchronous Pattern](https://learn.microsoft.com/en-us/dotnet/standard/asynchronous-programming-patterns/task-based-asynchronous-pattern-tap) at Microsoft - the theory behind async programming.
+- [Using Task.Run and Async/Await](https://www.pluralsight.com/guides/using-task-run-async-await).
