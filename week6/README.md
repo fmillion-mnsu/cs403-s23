@@ -16,4 +16,4 @@ There is a lot to talk about, so dive in to the resources and prepare for the pr
 
 * Review the resource guide - for this week, it's simply named "Resource Guide". This is the same material we've been previously calling the Presentation Guide. However, it's a good idea for everyone to review the entire resource guide!
 * If you have been assigned a presentation topic, prepare your presentation for class on Friday - see [the Presentation Guide](https://mnsu.learn.minnstate.edu/d2l/le/content/6192136/viewContent/59970825/View) for guidance.
-* Work on the Week 6 homework and submit by **Friday, April 28th, 11:59 PM** in D2L.
+* Work on the Week 6 homework and submit by **Tuesday, May 2nd, 11:59 PM** in D2L.
