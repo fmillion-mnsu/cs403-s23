@@ -174,7 +174,11 @@ The next presentation will cover a few more advanced scenarios with Git, so cons
 
 In your presentation, please cover:
 
-- 
+- What is source control (in general)?
+- What is the `git` source control system?
+- Provide a very basic workflow for how to work with a project that uses `git`. This includes cloning (or creating) the project, adding files, and committing the files. If the repository is remote, it also involves pushing the code.
+- Take a very brief look at one other source code system, such as Mercurial or CVS. Compare and contrast that system with `git`.
+
 Sources to get you started (but please do seek out and use other sources as well!):
 
 
