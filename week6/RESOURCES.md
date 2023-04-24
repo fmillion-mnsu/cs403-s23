@@ -7,12 +7,13 @@ This week's presentations will discuss multithreading, parallelism, threading an
 - [Overview of Parallel Computing](#overview-of-parallel-computing)
 - [C# Synchronization Primitives](#c-synchronization-primitives)
 - [Basic C# Threading](#basic-c-threading)
+- [Thread Pools](#thread-pools)
 
 **Friday**:
 
-- [Thread Pools](#thread-pools)
-- [Parallel Tasks]
+- [Parallel](#c-parallel)
 - [Concurrent Collections](#c-concurrent-collections)
+- [Parallel LINQ](#c-parallel-linq-and-wrapping-up-multithreading)
 - [C# async programming](#c-async-programming)
 
 ## Overview of Parallel Computing
@@ -512,17 +513,74 @@ In your presentation, please cover:
 
 Sources to get you started (but please do seek out and use other sources as well!):
 
+## C# Tasks and Parallel
 
+We've looked at two ways to run multiple pieces of code at the same time. Now we'll see yet another way to accomplish it. C# has a `Parallel` class that lets us run multiple operations in...you guessed it...parallel!
 
+The advantage of the `Parallel` class is that we don't need to worry about tracking the completion. If we make a call to a method in the `Parallel` class, it will kick off the threads, wait for them to complete, and then the method will return. So we don't need to use a separate object such as a `CountdownEvent` to track the events and their completion.
 
+Here's the code:
+
+    internal class Program
+    {
+
+        static readonly List<int> Averages = new();
+        public static readonly object LockObject = new();
+
+        static void ThreadMethod()
+        {
+            Random rnd = new();
+            List<int> Randoms = Enumerable
+                .Range(0, 500000)
+                .Select(x => rnd.Next(0, int.MaxValue))
+                .ToList();
+            int avg = (int)Randoms.Average();
+
+            lock (LockObject)
+            {
+                Averages.Add(avg);
+            }
+
+        }
+        static void Main(string[] args)
+        {
+
+            DateTime startedTime = DateTime.UtcNow;
+
+            // number of threads
+            int threadCount = 1000;
+
+            Parallel.For(0, threadCount, i => ThreadMethod());
+
+            int max = Averages.Max();
+
+            Console.WriteLine($"Largest average: {max}");
+
+            TimeSpan timeTaken = DateTime.UtcNow - startedTime;
+
+            Console.WriteLine($"Time taken: {timeTaken.TotalMilliseconds/1000:0.##} seconds");
+        }
+    }
+
+The key statement in this code is the `Parallel.For` statement. The `For` statement accepts three parameters - the starting value for the `For` iteration, the ending value (exclusive), and a method to execute. The method is actually a *delegate*, a topic that we'll look at more in Week 7, but for now, it is sufficient to understand that it is a method that is being passed as a parameter to a method, similar to how we passed methods in LINQ. The `i` parameter is the value in the `For` loop - since we don't need it, we simply call the `ThreadMethod` inside the lambda function.
+
+What's nice about the `Parallel` class is that the .NET Framework can optimize how many threads are running and work to improve the performance. In the previous section, where we used a `ThreadPool`, my system ran the code in about 2.9 seconds. However, with `Parallel`, the code runs in only 2.1 seconds. This seems like a small improvement, but it is only 72% of the speed of the `ThreadPool` strategy!
+
+`Parallel` also offers a `ForEach` statement. This works similarly to `Parallel.For`, but it accepts an iterable and passes one item from that iterable into the method each time a thread is started. Using `Parallel.ForEach`, you can mutltithread bulk processing of items in a collection.
+
+In your presentation, please cover:
+
+Sources to get you started (but please do seek out and use other sources as well!):
 
 ## C# Concurrent Collections
 
-In a previous example, we used a `lock` statement to protect accesses to a `List`. This is because, with multiple entities accessing the list, we could run into a situation where multiple threads are simultaneously trying to access the `List`. Since this is a rather common scenario, C# provides some classes that can alleviate the problem for us, by automatically wrapping calls that manipulate the collection in `lock` statements internally (i.e. you don't have to write `lock` blocks, because the class's own code includes them wherever the data in the collection is changed.)
+We'll take a brief break from working on our little multithreaded code example to talk about another aspect of threaded programming in C#.
+
+In the code example we've been working with, we use a `lock` statement to protect accesses to a `List`. This is because, with multiple entities accessing the list, we could run into a situation where multiple threads are simultaneously trying to access the `List`. Since this is a rather common scenario, C# provides some classes that can alleviate the problem for us, by automatically wrapping calls that manipulate the collection in `lock` statements internally (i.e. you don't have to write `lock` blocks, because the class's own code includes them wherever the data in the collection is changed.)
 
 The `System.Collections.Concurrent` namespace includes a handful of generic collection types that support thread-safety:
 
-* `ConcurrentBag` - roughly the equivalent of a `List` - an unordered collection of jbects. 
+* `ConcurrentBag` - roughly the equivalent of a `List` - an unordered collection of objects. 
 * `ConcurrentDictionary` - equivalent of a `Dictionary`.
 * `ConcurrentStack` and `ConcurrentQueue` - implementations of a *LIFO* and *FIFO* list. A Stack accepts items and returns them in reverse order (imagine physically stacking objects vertically), and a FIFO accepts items and returns them in order (imagine an assembly line).
 
@@ -568,6 +626,8 @@ Also note that the thread-safe code can be written even more concisely!
 
 These collection objects implement an interface known as `IProducerConsumerCollection`. This is an access paradigm in which different threads *produce* messages and data, and other threads *consume* the data. This is covered in more detail when we talk about async programming. A simple example of using the produer/consumer pattern is in the online resources below; it's essentially an implementation of a `Queue`, where messages are posted by one thread and read by another. We won't cover the actual implementation of this in C#, but you should mention the consumer/producer pattern conceptually.
 
+In our next presentation we'll return to optimizing and improving our multithreaded code sample -- by using LINQ!
+
 In your presentation, please cover:
 
 - The main concurrent collection classes in C#
@@ -576,14 +636,145 @@ In your presentation, please cover:
 
 Sources to get you started (but please do seek out and use other sources as well!):
 
-## C# Parallel Tasks and LINQ
+## C# Parallel LINQ and Wrapping Up Multithreading
 
-Another very common scenario that we would use multithreaded programming for is to iterate over a large list of items and perform some operation on each item. Many operations use this pattern - AI training and modeling, media encoding and more utilize this very pattern of operations as part of their core functionality. 
+Now we'll connect what we've learned about parallel programming in C# to what we learned about LINQ and querying. The nice part of this discussion is that there's actually very little you need to learn! Once you've worked with LINQ, you already know most of what you need to know to use Parallel LINQ! This is one case where the .NET Framework handles a lot of the dirty work for you - you don't have to use the `Parallel` class directly (although PLINQ is using it in the background) and you don't need to do anything other than slightly modify your LINQ queries to take advantage of parallelism!
 
-The way that you are likely most familiar with doing this is using `foreach` (or `for x in y` in Python, etc). This method is not multithreaded, and thus you wouldn't have to worry about thread safety, but you would not gain any of the advantages of running your code on multiple threads and cores at once.
+Imagine we wanted to convert our simple program that calculates a running average to use LINQ. This would be relatively straightforward, since LINQ offers a nice way to generate a list of numbers. It's basically the same as Python's `range` statement:
 
-In a previous presentation we looked at a way of setting up a multithreaded execution environment. However, the problem we faced was that, once we start enough threads, we start to *lose* performance rather than gain it. To alleviate not only this problem but also improve the code structure, we can utilize built-in C# functionality to achieve the same effect as a `foreach` loop with threading, but with more control over the process. To further ensure thread safety, we'll use the `ConcurrentBag` class to replace the `List` that holds the results of each individual calculation.
+    Enumerable.Range(0, 1000); // creates an enumerable object that generates numbers from 0 up to 999.
 
+This method only generates an *enumerator* - essentially a class instance that generates the numbers as you request them. The numbers themselves aren't actually stored in memory - only the current number is stored. However, we can convert this to an actual list of numbers stored in memory by simply using `ToList` or `ToArray`:
+
+    int[] numbers = Enumerable.Range(0, 1000).ToArray();
+
+    // or
+
+    List<int> numbers = Enumerable.Range(0, 1000).ToList();
+
+In our code sample, we don't actually care about the number itself, but a list of 1,000 numbers can serve as an enumerable object that our program can use to know that it needs to run the thread 1,000 times. 
+
+Here's how we can rework the code from the previous example to use LINQ:
+
+    internal class Program
+    {
+
+        static readonly List<int> Averages = new();
+        public static readonly object LockObject = new();
+
+        static void ThreadMethod()
+        {
+            Random rnd = new();
+            List<int> Randoms = Enumerable
+                .Range(0, 500000)
+                .Select(x => rnd.Next(0, int.MaxValue))
+                .ToList();
+            int avg = (int)Randoms.Average();
+
+            lock (LockObject)
+            {
+                Averages.Add(avg);
+            }
+
+        }
+        static void Main(string[] args)
+        {
+
+            // number of threads
+            int threadCount = 1000;
+
+            // Use Enumerable.Range to make a list of 1,000 numbers
+            int[] instances = Enumerable.Range(0, threadCount).ToArray();
+
+            DateTime startedTime = DateTime.UtcNow;
+
+            // A little LINQ "abuse" that causes the 'void' method to run for each
+            // item in the list.
+            var junk = instances.Select(x =>
+            {
+                ThreadMethod();
+                return 0;
+            }).ToArray(); // we need to use ToArray() to force LINQ to actually evaluate
+                          // the array - due to lazy loading, if we don't do this, the
+                          // ThreadMethod will never be called.
+
+            int max = Averages.Max();
+
+            Console.WriteLine($"Largest average: {max}");
+
+            TimeSpan timeTaken = DateTime.UtcNow - startedTime;
+
+            Console.WriteLine($"Time taken: {timeTaken.TotalMilliseconds/1000:0.##} seconds");
+        }
+    }
+
+The changes here are that we are using LINQ to generate a list of 1,000 objects, and that we are then using a trick to design a LINQ select query that will actually run `ThreadMethod()` for each item in the list.
+
+Actually, let's see if we can do better. Maybe we don't need to use a `lock` at all?...
+
+
+    internal class Program
+    {
+
+        static int ThreadMethod()
+        {
+            Random rnd = new();
+            List<int> Randoms = Enumerable
+                .Range(0, 500000)
+                .Select(x => rnd.Next(0, int.MaxValue))
+                .ToList();
+            int avg = (int)Randoms.Average();
+
+            return avg;
+        }
+        static void Main(string[] args)
+        {
+
+            // number of threads
+            int threadCount = 1000;
+
+            // Use Enumerable.Range to make a list of 1,000 numbers
+            int[] instances = Enumerable.Range(0, threadCount).ToArray();
+
+            DateTime startedTime = DateTime.UtcNow;
+
+            // A little LINQ "abuse" that causes the 'void' method to run for each
+            // item in the list.
+            var Averages = instances.Select(x => ThreadMethod()).ToList();
+
+            int max = Averages.Max();
+
+            Console.WriteLine($"Largest average: {max}");
+
+            TimeSpan timeTaken = DateTime.UtcNow - startedTime;
+
+            Console.WriteLine($"Time taken: {timeTaken.TotalMilliseconds/1000:0.##} seconds");
+        }
+    }
+
+There, now we've eliminated the need to manually add items to the `Averages` list. This code is looking more "LINQ-friendly" now!
+
+Except that when I run this code, we're back to single-threaded performance. Typically, LINQ runs on a single thread. However, Parallel LINQ can bring back the performance gains we saw when we used the `Parallel` class. And guess what... it's as simple as adding *one statement*!
+
+All we need to do is change
+
+    var Averages = instances.Select(x => ThreadMethod()).ToList();
+
+to
+
+    var Averages = instances.AsParallel().Select(x => ThreadMethod()).ToList();
+
+Before I added this single method call, the code took 8 seconds to run on my machine. After adding it, it was cut down to 3 seconds. Still not *quite* as fast as using `Parallel.For`, but there are also other considerations - LINQ can definitely take up some CPU time, and the fact that we're letting LINQ handle the thread synchronization could be a factor too. But you definitely can't beat the ease with which we made this code parallel!
+
+To summarize:
+
+* If you're working with code that simply needs to perform an operation on many elements, setting up the code to be LINQ-friendly and then using Parallel LINQ is the easiest and most straightforward way to gain multithreaded performance.
+* Code needing more complex operations can often be parallelized using `Parallel.For` or `Parallel.ForEach`.
+* If you have *extremely* complex code where multiple threads are all doing very different things, `ThreadPool`s and manually managing `Thread`s may be the way to go.
+
+What I hope you're starting to discover is that modern languages, such as .NET, offer a huge amount of functionality as part of the language and its standard library. Everything we have been learning about parallel programming can be generalized to any programming language that implements the concept of a thread. However, many languages simply offer threading primitives and don't provide much else to you - you have to write all of the code to actually handle threads yourself. This is a big part of why we started with a simple straightforward method, looked at its disadvantages, and then worked our way up to where we are now. Notice that in each section the code got a bit more compact and concise, and at the same time the performance kept improving. This is because a language like C#, and the accompanying features of the .NET Framework, has solved many of these issues for us and offers us nicely-designed programming constructs that we can use to quickly and easily take advantage of parallel programming. Imagine having to actually write all of the code to handle the different memory locations for each thread, scheduling execution, and so on! (If you were using a language like C, you'd be doing a lot more of it on your own - or you'd have to find a third-party library to do it for you!)
+
+As we wrap up talking about parallel programming, there's one other aspect we're going to cover in the final presentation for this content: async programming. Unlike parallel execution for improved performance, async programming is more about *responsiveness* than *performance*. Stay tuned!
 
 In your presentation, please cover:
 
@@ -593,19 +784,11 @@ Sources to get you started (but please do seek out and use other sources as well
 
 Ok, here we go. Async programming. This is a topic that can be very confusing - and partly it's because the language constructs themselves are a bit confusing, since we have to understand a few different things things at once.
 
-First, what is an async method? Basically, it's a task that's meant to run in the background. We've covered ways to do this with threads. But what makes an async method different is that it returns a value, and it's expected that it will be doing something that will take some amount of time. However, during that task's operation, we don't want the program to "lock up" while it waits for the result.
+First, what is an async method? Basically, it's a task that's meant to run in the background. We've covered ways to do this with threads. But what makes an async method different is that it returns a value, and it's expected that it will be doing something that will take some amount of time. However, during that task's operation, we don't want the program to "lock up" while it waits for the result. Syntactically, you can have async methods that return `void`, but at that point they're really no different than threads, and you could just use a normal `ThreadPool` to execute them in the background.
 
 Have you ever been using a program and suddenly the entire program becomes completely unresponsive? On a Mac, you might get "the spinning beachball", and on Windows, you might get "the spinning blue circle" and the application might fade in color to let you know it's "stuck". This is the sort of thing that can happen if the developer of the program did not implement async programming. (It's also possible that it's many other bugs, but one of the main goals of async programming is to eliminate this problem.)
 
 Let's design a completely useless scenario that still demonstrates where async programmin comes into play. Suppose we make a "fidget keyboard" program - you can type letters and it makes things pop up on the screen. However, while this is happening some other process is running in the background. 
-
-
-
-In your presentation, please cover:
-
-Sources to get you started (but please do seek out and use other sources as well!):
-
-## Debugging Multithreaded Code in C#
 
 In your presentation, please cover:
 
