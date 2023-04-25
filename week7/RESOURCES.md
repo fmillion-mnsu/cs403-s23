@@ -181,7 +181,41 @@ In your presentation, please cover:
 
 Sources to get you started (but please do seek out and use other sources as well!):
 
+## Source Control - Advanced
 
+Since `git` is the de-facto standard for source control, and it's most likely the source control system you will encounter in the industry, in open source projects and so on, we'll focus on `git` from now on.
+
+The very basics of `git` are not too difficult to understand, and you've probably already used it for these purposes as we've said. The notion of *committing* your code (and then *pushing* those changes to the server) is the most common workflow - by committing your code, you are storing a snapshot of the code at that instant in time. The beauty of this is that you can refer back to that snapshot at any time in the future - even months or years into the future, and even thousands or *millions* of commits later. That commit you made effectively freezes the code in time at that point, and since commits are intended to be immutable, that code will forever exist as long as the repository does. (With some exceptions...read on.)
+
+### Rebasing
+
+The Git *rebase* is a tool that can seem quite confusing at first, because its use case is unique. Essentially, the rebase command lets you "restart" your branch from a different place. 
+
+Let's back up a bit. Remember that in Git, branches are threads of commits. A branch starts at a certain point and diverges on its own from there. You can edit the branch's code and make commits on the branch, but those commits exist independently of any other branch. In essence, you can have as many "versions" of the code as you have branches. You have possibly worked on a project where every developer started by making a branch off of the main branch and working from there. If you each simply worked on your branches, you'd end up with a version of the code for each developer. But of course you ultimately need to bring all this code together on a main branch.
+
+The typical way of doing this is to do a *merge*. A merge essentially compares two branches and generates a commit that will take the changes from both branches and *merge* them together. If branch A has some changes and branch B has some changes, merging branch B into branch A means that branch A will now have its changes *as well* as branch B's changes. This is typically how you bring everyone's work together into one place.
+
+Of course, you have also likely encountered the dreaded *merge conflict*. This is actually somewhat common if you're working on an active project. You do a bunch of work on your branch and you're ready to do a *pull request* to have your work merged into the main branch. However, in the meantime, other people have also done work that has been pulled into the main branch. When you try to merge your code into main, suddenly you get merge conflicts all over the place - because other people also made changes to the same code you made changes to!
+
+A *rebase* is a way to not only help alleviate this problem, but to also keep the history log *linear*. A complex history of branches, merges, more branches and more merges and conflict resolutions can quickly become hard to track. Especially when you're looking to find where a bug was introduced, having a complex commit history can make the task especially daunting. 
+
+Conceptually, a git rebase simply means that you change the *starting point* of your branch, and then work your way back to where you are now in the code. Note that we said that each branch starts at some specific commit - so let's say that your branch started on the main branch at commit 12345. You made some changes and made commit 12346 and 12347. But in the meantime someone else made changes to main that produced commit 12348. When you try to merge, you have merge conflicts with commit 12348.
+
+Rather than dealing with the conflicts, you could instead *rebase* your branch so that its *starting* point is now commit 12348. In effect, it's as if you made the branch *after* commit 12348 was put onto main. Git will then walk through your commits and apply them, one by one, to the code from 12348. You also get the chance to deal with any potential merge conflicts on your own, without "bugging" the project maintainers or embarrassing yourself with a huge merge conflict on the main branch. 
+
+Once you have rebased, you can simply merge with main - and since your commits all are *based* on the current commit of main (and not the older one you initially started with), your merge becomes a simple "fast-forward" merge, and no merge commit even needs to be made - your commits are applied as-is to the main branch! In effect, rebasing moves the effort of merging the code from the main branch to your own branch. 
+
+There are two rebase strategies - the *interactive* strategy and the *automatic* strategy. The automatic strategy simply restarts your branch at the new commit and then walks forward all your commits. The *interactive* model gives you the chance to "rewrite history" as it were. You can cherry-pick *which* of your commits get applied to the new base commit, and even change the commit messages, among other options.
+
+There are a few caveats when it comes to rebasing - the main one being that it can be challenging to rebase on a branch after you have pushed it. This effectively creates a scenario where "history is rewritten". (In essence, that's what rebasing is doing, but as long as it's all in your own machine and not on the server, it's no big deal... but as soon as you ask the *server* to change history, you run into possible problems. Some servers may simply refuse to let you do this at all, others may choke on the push and get confused.)
+
+### Git Large File Storage
+
+The other advanced Git topic we'll cover in this section is large file storage. Git LFS is a plugin for Git that allows you to manage the storage of large files in your repository. If you've ever worked with a Git repository where someone committed a huge file (say, a Zip file, video file, etc.), you will notice that this file will pretty much get stuck in the repository's history, even if you try to delete it - remember Git history is intended to be immutable. Additionally, Git's change tracking algorithms are optimized for text content; large binary files simply waste time trying to analyze humongous files for changes, and even if those changes do occur, they can't be efficiently stored in a text-based format.
+
+
+
+- [Git Rebase tutorial](https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase) at Atlassian.
 
 ## Continuous Integration and Deployment
 
