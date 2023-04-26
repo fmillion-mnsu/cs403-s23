@@ -4,13 +4,18 @@ It's time to wrap up our journey into C# and to cover some other general program
 
 The topics in our last week don't follow any particular theme. Many topics stand alone, and a couple of them group together nicely, but the overarching theme for this final week of content is "everything else".
 
+**Wednesday**
+
 - [C# Delegates](#c-delegates)
 - [C# Multicast Delegates](#c-multicast-delegates)
 - [Source Control - Basics](#source-control-basics)
 - [Source Control - Advanced](#source-control-advanced)
 
-- [Continuous Integration and Deployment (CI/CD)](#continuous-integration-and-deployment)
+**Friday**
 
+- [Continuous Integration and Deployment (CI/CD)](#continuous-integration-and-deployment)
+- [The `dotnet` command line tool](#the-dotnet-command-line-tool)
+- [ASP.NET](#aspnet)
 
 ## C# Delegates
 
@@ -181,6 +186,10 @@ In your presentation, please cover:
 
 Sources to get you started (but please do seek out and use other sources as well!):
 
+- The home page for [Git](https://git-scm.com/). It includes an [About page](https://git-scm.com/about) that gives some nice starting information about Git and its usefulness.
+- [The Github Cheat Sheet](https://education.github.com/git-cheat-sheet-education.pdf). If you use Git it's even worth printing this out or keeping a copy close at hand - it covers the most common operations you'll need to know when working with Git in a concise, friendly manner.
+- The [CVS version system](https://www.nongnu.org/cvs/) and [Mercurial](https://www.mercurial-scm.org/) are Git alternatives. Historically Microsoft had a system known as [Visual SourceSafe](https://www.red-gate.com/simple-talk/databases/sql-server/tools-sql-server/life-after-retirement-replacing-visual-sourcesafe/), but it was discontinued in 2011 in favor of implementing Git into their version control solutions.
+
 ## Source Control - Advanced
 
 Since `git` is the de-facto standard for source control, and it's most likely the source control system you will encounter in the industry, in open source projects and so on, we'll focus on `git` from now on.
@@ -213,9 +222,27 @@ There are a few caveats when it comes to rebasing - the main one being that it c
 
 The other advanced Git topic we'll cover in this section is large file storage. Git LFS is a plugin for Git that allows you to manage the storage of large files in your repository. If you've ever worked with a Git repository where someone committed a huge file (say, a Zip file, video file, etc.), you will notice that this file will pretty much get stuck in the repository's history, even if you try to delete it - remember Git history is intended to be immutable. Additionally, Git's change tracking algorithms are optimized for text content; large binary files simply waste time trying to analyze humongous files for changes, and even if those changes do occur, they can't be efficiently stored in a text-based format.
 
+Git LFS uses an extension to Git that adds a "virtual file" to your repository that references a file stored in Git LFS storage. Git LFS storage is hosted separately from the Git repository itself, typically using something like an S3 object storage backend, or by a service offered especially for the purpose by a Git service. 
 
+Git LFS also does not track changes *within* a file - if a file has changed, a new copy of the file is added to Git LFS storage. This may seem less efficient, but this is a tradeoff - doing an extremely complex binary comparison operation on very large files would make commits very slow indeed. Typically Git LFS is used for large files that do not need to change frequently, if at all - things like video and audio files or large datasets that are static. 
+
+Using Git LFS involves installing the Git LFS plugin and then *installing* it into your repository. Once you've done this, you tell Git which files you want to be handled by Git LFS (and thus not stored directly into the repository). It's done similar to how `gitignore` files work, and is stored in the `.gitattributes` file. After that, you can simply use Git "as usual" - files matching the patterns configured will "magically" go to Git LFS.
+
+It's important to note that *everyone* working on the Git repository needs to have Git LFS installed. If a developer does not have the plugin installed, they will see the marker files that Git LFS creates to indicate which actual file should exist - and it would be easy for someone to accidentally (or maliciously!) modify those files. If you use Git LFS, make sure it's part of your "project onboarding" workflow!
+
+More information and some quick steps to try it out, if you use Github, are [here](http://arfc.github.io/manual/guides/git-lfs).
+
+In your presentation, please cover:
+
+- What is `git rebase`? Provide a high-level description of the function.
+- Why might you use `git rebase`? In particular, why not just do a straight merge with the destination branch?
+- What is Git LFS? 
+- Why use Git LFS for file storage rather than just storing big files in the main repository?
+
+Sources to get you started (but please do seek out and use other sources as well!):
 
 - [Git Rebase tutorial](https://www.atlassian.com/git/tutorials/rewriting-history/git-rebase) at Atlassian.
+- [About Git Large File Storage](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage) at Github.
 
 ## Continuous Integration and Deployment
 
@@ -231,7 +258,7 @@ Continuous Integration, or CI, describes the practice of using software to autom
     4. Run tests on the code.
     5. If steps 2-4 completed successfully, package the code for distribution. This could be zipping the final build, compiling an installer program, or producing a package for deployment to a server.
 
-Continuous deployment is typically viewed as distinct from continuous integration, although it is usually part of the same process, and could often be viewed as a step in a CI pipeline. Continuous deployment refers to "deploying" the code automatically. This might mean pushing the code onto a web server or publishing an installer package to a web server or online app store, and might include steps such as digitally signing the code.
+Continuous deployment, also sometimes called continuous *delivery*, is typically viewed as distinct from continuous integration, although it is usually part of the same process, and could often be viewed as a step in a CI pipeline. Continuous deployment refers to "deploying" the code automatically. This might mean pushing the code onto a web server or publishing an installer package to a web server or online app store, and might include steps such as digitally signing the code.
 
 CI/CD systems are often integrated with source code management systems such as Git. Hosted Git services such as Github offer CI/CD services as part of their system, and there are also CI/CD solutions for code you manage and host on your own servers. A CI/CD system is based on common job control theory; usually, you will run an "agent" or "runner" on one or more "build hosts", which are the computers or servers responsible for actually building the code. These agents will retrieve work from the source code management system as it is made available. (Interestingly, you can model it on the same model we used to describe how to do parallel programming - imagine if each build host were a "thread" and each CI/CD pipeline job was a "task"!)
 
@@ -261,3 +288,60 @@ In your presentation, please cover:
 - Provide a quick brief description of at least one CI/CD system.
 
 Sources to get you started (but please do seek out and use other sources as well!):
+
+- [What is Continuous Integration](https://learn.microsoft.com/en-us/devops/develop/what-is-continuous-integration) and [What is Continuous Delivery](https://learn.microsoft.com/en-us/devops/deliver/what-is-continuous-delivery) at Microsoft - These articles make reference to Azure DevOps, Microsoft's hosted Git and CI/CD platform. However, you can use the same CI/CD techniques on any platform, including self-hosted ones, that offer the functionality.
+- [GitHub Actions](https://github.com/features/actions) - GitHub's implenentation of CI/CD.
+- [Continuous integration vs. delivery vs. deployment](https://www.atlassian.com/continuous-delivery/principles/continuous-integration-vs-delivery-vs-deployment)
+
+## The `dotnet` command line tool
+
+So far in this course, most of you have been using Visual Studio to write your C# code. You have created projects using Visual Studio's New Project page and have written most of your code in Visual Studio. (Some of you have used other IDE's, and you may very well be ahead of the game on this topic!)
+
+Traditionally, Visual Studio did a lot of the heavy lifting in setting up a new programming project, putting in the boilerplate code and so on. However, the modern implementation of .NET is entirely command-line driven. Visual Studio still provides a nice, convenient user interface, but Visual Studio is doing a lot less of the *framework* tasks such as scaffolding and boilerplating a new project. (VS still handles things like IntelliSense, refactoring and so on, of course, but there is a much clearer separation between the *language* and the *development environment* than there used to be.)
+
+The .NET Framework development tools are largely driven by the `dotnet` command line tool. With `dotnet`, you can scaffold new projects, compile projects, install project dependency packages (e.g. from NuGet), run tests, and even do some basic code analysis and refactoring - all at the command line. In addition, the `dotnet` command can be extended via plugins - this is what the Entity Framework package does to add the `dotnet ef` command. (If you chose to connect to the product database for Week 4, you saw this in action at that time!)
+
+`dotnet` is not limited only to C# projects - it can also work with projects written in VB.NET, F#, and other .NET-based languages. There is even a new language based on .NET known as Q#, which is optimized for *quantum computing!* 
+
+One of the main reasons why the `dotnet` tool is useful is not just for developers wanting to use different IDEs or do things at the command line, but also for continuous integration and deployment. CI/CD systems are almost universally script-based, which means that they run command line applications, passing them all of the parameters necessary to accomplish the task at hand. While there have been ways to build .NET applications at the command line since early on (e.g. the `csc` compiler compiles C# code to assemblies), the `dotnet` tool offers up a one-stop shop for running many tasks important to the development lifecycle of a .NET C# application. Thanks to `dotnet`, you can easily design and run a CI/CD job that analyzes, tests, builds, and deploys your C# application automatically - every time you push your updates to a certain Git branch.
+
+The most basic workflow for using `dotnet` to write an application without Visual Studio looks like this:
+
+1. `dotnet new -o MyProject console`
+
+    This creates a new .NET project (note: not a solution) in the folder `MyProject` underneat the current directory. A `.csproj` and a boilerplate `.cs` source code file are created for you.
+
+    Note: You can run `dotnet new list` to see the types of project templates that are available for creation.
+
+1. Write some C# code into the `.cs` file. 
+1. Make sure you're in the directory that the project file is in.
+1. `dotnet build`
+
+    This will actually build the .NET application - it will compile and produce an `.exe` assembly file that can be directly executed.
+
+    Depending on the project type, you might get a different output, e.g. a `.dll` file for a class library project.
+
+1. `dotnet run`
+
+    This will simply locate and run the project within the current folder.
+
+Visual Studio Code, like full Visual Studio, makes use of the `dotnet` binary to provide its C# development experience. VS Code does offer IntelliSense (although perhaps not to quite the advanced degree that full VS has), and it can do debugging tasks as well. However, VS Code doesn't have as nice and clean of a "new project" user interface; you'll likely start your projects and build them using `dotnet` commands in VS Code's terminal if you decide to use VS Code.
+
+You can now start to see how we could use `dotnet` in a CI/CD pipeline. We could have a script that simply downloads the current Git branch code, then just runs `dotnet build`. The CI script would then collect the output generated and create an *artifact* for delivery to the CD system for actual deployment! (And if errors occurred, they'd be detected and could be reported to the administrator and/or developers - without deploying anything.)
+
+The `dotnet` tool is very extensive and there is no way it could be fully covered in a 5-minute presentation. However, do try popping open a command prompt and even simply typing `dotnet --help` to see what else there is. Or you can view the documentation in the sources section for this presentation.
+
+In your presentation, please cover:
+
+Sources to get you started (but please do seek out and use other sources as well!):
+
+## ASP.NET
+
+The final topic we will cover, again only very briefly, is how C# is used to write web-based applications.
+
+Like many languages, C# has support for writing applications that run on the Internet. Python is notable for its Django and Flask web frameworks, and PHP was basically designed with web programming in mind from the start. Node.JS is also commonly used for writing server backend applications, among other languages. Since the web is such an integral part of modern computing, nearly all modern mainline languages offer support for writing programs intended to run via the Internet, and C# is no exception.
+
+ASP.NET (Active Server Pages for .NET) has a long history, dating back to the earliest days of Microsoft's Internet Information Server (IIS) in the 1990s, and even predates the .NET language itself. The modern iteration of ASP.NET is built on the .NET framework and, hence, can be implemented in any .NET language - typically C#, but Visual Basic .NET can also be used. With ASP.NET, you program *controllers* that implement methods that will be called when requests come into your Web server. The controllers can render *views*, which can consist of fully-formed Web pages, JSON or XML responses (for REST or SOAP APIs), binary data (for file downloads or streams) and so on. 
+
+ASP.NET is a very complex topic and multiple courses could be built on it. Thus, we're going to simply explain the theory of ASP.NET and, in particular, how it relates to the C# and programming skills and techniques we've learned in this course.
+
