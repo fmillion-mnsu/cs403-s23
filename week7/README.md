@@ -13,3 +13,6 @@ This week we're going to wrap up by covering a few extra topics related to softw
 * Prepare for your final project - if you have not submitted a project proposal, make sure you do so **no later than Wednesday April 26th**. *If you haven't submitted a project proposal by Thursday the 27th, I will assign one to you!*
 * Take the final exam and finish your final programming project prior to the final due date of **Thursday, May 4th**. 
 
+## Reminder!
+
+Your **Final Project Proposal** is due Wednesday, April 26th, and your **Final Project Submission** is due on May 4th at 11:59 PM. This is a **hard deadline**!
