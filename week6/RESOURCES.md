@@ -511,7 +511,13 @@ You may wonder why we don't get a one-to-one increase in performance - why doesn
 
 In your presentation, please cover:
 
+- What is a thread pool?
+- What are the advantages - and limitations - of using thread pools?
+
 Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Thread Pools](https://learn.microsoft.com/en-us/dotnet/api/system.threading.threadpool?view=net-7.0) at Microsoft.
+- [Thread Pool examples](https://dotnettutorials.net/lesson/thread-pooling/) at DotNetTutorials.
 
 ## C# Parallel Tasks
 
@@ -570,7 +576,13 @@ What's nice about the `Parallel` class is that the .NET Framework can optimize h
 
 In your presentation, please cover:
 
+- What is `Parallel`? What can it do?
+- How does using `Parallel` differ from using threads manually or using a `ThreadPool`?
+
 Sources to get you started (but please do seek out and use other sources as well!):
+
+- [Parallel class](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.parallel?view=net-8.0) at Microsoft.
+- [Writing a Parallel.For loop](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-write-a-simple-parallel-for-loop) and [Writing a Parallel.ForEach loop](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-write-a-simple-parallel-foreach-loop).
 
 ## C# Concurrent Collections
 
